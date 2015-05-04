@@ -1,7 +1,7 @@
 calculating-spaceweather-keywords
 =================================
 
-You can use this code to calculate spaceweather keywords from vector magnetic field data taken by the Helioseismic and Magnetic Imager (HMI) on the Solar Dynamics Observatory satellite. The Solar Dynamics Observatory takes about a terabyte and a half of data a day, which is more data than any other satellite in NASA history, and has been running since April 2010. [Bobra & Couvidat (2015)](http://arxiv.org/abs/1411.1405) showed that these spaceweather keywords are useful for predicting solar flares.
+You can use this code to calculate spaceweather keywords from vector magnetic field data taken by the Helioseismic and Magnetic Imager (HMI) on NASA's Solar Dynamics Observatory satellite. The Solar Dynamics Observatory takes about a terabyte and a half of data a day, which is more data than any other satellite in NASA history, and has been running since April 2010. [Bobra & Couvidat (2015)](http://arxiv.org/abs/1411.1405) showed that these spaceweather keywords are useful for predicting solar flares.
 
 ### Inputs
 
