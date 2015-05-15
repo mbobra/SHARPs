@@ -1,7 +1,9 @@
 calculating-spaceweather-keywords
 =================================
 
-You can use this code to calculate spaceweather keywords from vector magnetic field data taken by the Helioseismic and Magnetic Imager (HMI) on NASA's Solar Dynamics Observatory satellite. The Solar Dynamics Observatory takes about a terabyte and a half of data a day, which is more data than any other satellite in NASA history, and has been running since April 2010. [Bobra & Couvidat (2015)](http://arxiv.org/abs/1411.1405) showed that these spaceweather keywords are useful for predicting solar flares.
+You can use the code `calculate_swx_fits.py` to calculate spaceweather keywords from vector magnetic field data taken by the Helioseismic and Magnetic Imager (HMI) on NASA's Solar Dynamics Observatory satellite. The Solar Dynamics Observatory takes about a terabyte and a half of data a day, which is more data than any other satellite in NASA history, and has been running since April 2010. [Bobra & Couvidat (2015)](http://arxiv.org/abs/1411.1405) showed that these spaceweather keywords are useful for predicting solar flares. 
+
+You can use the ipython notebook `plot_swx_d3.ipynb` to learn how to generate d3 plots of spaceweather keywords using matplotlib and a JSON parser. You can view this ipython notebook on the [ipython notebook viewer](http://nbviewer.ipython.org/). SDO data, including the spaceweather keywords, are stored in a pSQL database at Stanford University and accessible via a JSON API called [jsoc_info](http://jsoc.stanford.edu/jsocwiki/AjaxJsocConnect). 
 
 ### Inputs
 
