@@ -1,13 +1,18 @@
 calculating-spaceweather-keywords
 =================================
 
-You can use the code `calculate_swx_fits.py` to calculate spaceweather keywords from vector magnetic field data taken by the Helioseismic and Magnetic Imager (HMI) on NASA's Solar Dynamics Observatory satellite. The Solar Dynamics Observatory takes about a terabyte and a half of data a day, which is more data than any other satellite in NASA history, and has been running since April 2010. [Bobra & Couvidat (2015)](http://arxiv.org/abs/1411.1405) showed that these spaceweather keywords are useful for predicting solar flares. 
+You can use the code `calculate_swx_fits.py` to calculate spaceweather keywords from vector magnetic field data taken by the Helioseismic and Magnetic Imager (HMI) on NASA's Solar Dynamics Observatory satellite. The Solar Dynamics Observatory takes about a terabyte and a half of data a day, which is more data than any other satellite in NASA history, and has been running since April 2010. [Bobra & Couvidat (2015)](http://arxiv.org/abs/1411.1405) showed that these spaceweather keywords are useful for predicting solar flares. The inputs to and example useage for `calculate_swx_fits.py` are described below.
 
-You can use the ipython notebook `plot_swx_d3.ipynb` to learn how to generate d3 plots of spaceweather keywords using matplotlib and a JSON parser. You can view this ipython notebook on the [ipython notebook viewer](http://nbviewer.ipython.org/). SDO data, including the spaceweather keywords, are stored in a pSQL database at Stanford University and accessible via a JSON API called [jsoc_info](http://jsoc.stanford.edu/jsocwiki/AjaxJsocConnect). 
+You can also use one of several ipython notebooks to interact with SDO/HMI data (view ipython notebooks on the [ipython notebook viewer](http://nbviewer.ipython.org/)):
+
+* `plot_swx_d3.ipynb` generates interactive [d3](https://d3js.org/) plots of spaceweather keywords.
+* `feature_extraction.ipynb` (i) takes images from another instrument on SDO, called the Atmospheric Imaging Assembly (AIA), to determine which AIA pixels fall within the SHARP bounding boxes (in both CCD and Cylindrical Equal-Area coordinates) for any given active region at any time, and (ii) performs some computer-vision analyses to extract features from AIA data.
+* `movie.ipynb` generates movies of SDO image data.
+* `hedgehog.ipynb` provides a way to visualize the vector magnetic field.
 
 ### Inputs
 
-All SDO/HMI data is stored in a [publicly-available, web-accessible pSQL database.](http://jsoc.stanford.edu/ajax/lookdata.html) The data used for this code are documented extensively in [Bobra et al., 2014.](http://link.springer.com/article/10.1007%2Fs11207-014-0529-3) These nine input fits files are required for running `calculate_swx_fits.py`:
+All SDO/HMI data is stored in a [publicly-available, web-accessible pSQL database](http://jsoc.stanford.edu/ajax/lookdata.html) at Stanford University and accessible via a JSON API called [jsoc_info](http://jsoc.stanford.edu/jsocwiki/AjaxJsocConnect). The data used for this code are documented extensively in [Bobra et al., 2014.](http://link.springer.com/article/10.1007%2Fs11207-014-0529-3) These nine input fits files are required for running `calculate_swx_fits.py`:
 
 example filename  | description
 ------------- | -------------
