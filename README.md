@@ -7,9 +7,9 @@ One of the data products released by the Solar Dynamics Observatory is called [S
 
 ### Contents
 
-This repository contains several codes designed to show you how to interact with and understand SHARP data (view ipython notebooks on the [ipython notebook viewer](http://nbviewer.ipython.org/)):
+This repository contains several codes designed to show you how to interact with and understand SHARP data (view ipython notebooks on the [ipython notebook viewer](http://nbviewer.ipython.org/)). The first notebook, `plot_swx_d3.ipynb`, is a good place to start:
 
-* `plot_swx_d3.ipynb` generates interactive [d3](https://d3js.org/) plots of spaceweather keywords.
+* `plot_swx_d3.ipynb` generates interactive [d3](https://d3js.org/) plots of keywords and images, and movies using image data.
 * `movie.ipynb` generates movies of SHARP data.
 * `hedgehog.ipynb` provides a way to visualize the vector magnetic field in SHARP data.
 * `feature_extraction.ipynb` takes images from another instrument on SDO, called the Atmospheric Imaging Assembly (AIA), to determine which AIA pixels fall within the SHARP bounding boxes; this code also performs some computer-vision analyses to extract features from AIA data.
