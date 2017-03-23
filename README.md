@@ -7,7 +7,7 @@ One of the data products released by the Solar Dynamics Observatory is called [S
 
 ### Contents
 
-This repository contains several codes designed to show you how to interact with and understand SHARP data (view ipython notebooks on the [ipython notebook viewer](http://nbviewer.ipython.org/)). The first notebook, `plot_swx_d3.ipynb`, is a good place to start:
+This repository contains several codes designed to show you how to interact with and understand SHARP data (view ipython notebooks on the [ipython notebook viewer](http://nbviewer.ipython.org/)). You can run these on a Google Container Engine using Binder [![Binder](http://mybinder.org/badge.svg)](http://mybinder.org:/repo/mbobra/calculating-spaceweather-keywords).
 
 * `plot_swx_d3.ipynb` generates interactive [d3](https://d3js.org/) plots of keywords and images, and movies using image data.
 * `movie.ipynb` generates movies of SHARP data.
