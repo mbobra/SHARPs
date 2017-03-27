@@ -1,4 +1,3 @@
 drms
 sunpy
 mpld3
-moviepy
