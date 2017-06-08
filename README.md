@@ -14,27 +14,10 @@ This repository contains several codes designed to show you how to interact with
 * `hedgehog.ipynb` provides a way to visualize the vector magnetic field in SHARP data.
 * `feature_extraction.ipynb` takes images from another instrument on SDO, called the Atmospheric Imaging Assembly (AIA), to determine which AIA pixels fall within the SHARP bounding boxes; this code also performs some computer-vision analyses to extract features from AIA data.
 * `calculate_swx_fits.py` calculates spaceweather keywords from vector magnetic field data. The inputs, dependencies, and example useage for `calculate_swx_fits.py` are described below.
+* `disambiguation.py` disambiguates the azimuthal component of the vector magnetic field data and constructs the field vector in spherical coordinate components on a CCD grid.
 
-#### Inputs
+Sample data are included in this repository under the test_fits_files directory. All SDO data are publicly available. 
 
-These nine input fits files are required for running `calculate_swx_fits.py`:
+### Dependencies
+The various codes in this repository depend on the [NumPy](http://numpy.org/), [SciPy](http://www.scipy.org/), [SunPy](http://www.sunpy.org/), [AstroPy](http://www.astropy.org/), and [drms](https://drms.readthedocs.io/en/stable/) libraries.
 
-example filename  | description
-------------- | -------------
-hmi.sharp_cea_*.Br.fits  | radial component of the magnetic field vector
-hmi.sharp_cea_*.Bt.fits  | theta-component of the magnetic field vector
-hmi.sharp_cea_*.Bp.fits  | phi-component of the magnetic field vector
-hmi.sharp_cea_*.Br_err.fits | error in radial component of the magnetic field vector
-hmi.sharp_cea_*.Bt_err.fits | error in theta-component of the magnetic field vector
-hmi.sharp_cea_*.Bp_err.fits | error in phi-component of the magnetic field vector
-hmi.sharp_cea_*.conf_disambig.fits | bits indicate confidence levels in disambiguation result
-hmi.sharp_cea_*.bitmap.fits | bits indicate result of automatic detection algorithm
-hmi.sharp_cea_*.magnetogram.fits | line-of-sight component of the magnetic field
-
-Sample data are included in this repository. All SDO data are publicly available. 
-
-#### Dependencies
-This code depends on the [NumPy](http://numpy.org/), [SciPy](http://www.scipy.org/), and [SunPy](http://www.sunpy.org/) libraries.
-
-#### Example Usage
-	python calculate_swx_fits.py --file_bz=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br.fits --file_by=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt.fits --file_bx=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp.fits --file_bz_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br_err.fits --file_by_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt_err.fits --file_bx_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp_err.fits --file_mask=hmi.sharp_cea_720s.377.20110215_020000_TAI.conf_disambig.fits --file_bitmask=hmi.sharp_cea_720s.377.20110215_020000_TAI.bitmap.fits  --file_los=hmi.sharp_cea_720s.377.20110215_020000_TAI.magnetogram.fits
