@@ -14,7 +14,7 @@ This repository contains several codes designed to show you how to interact with
 * `hedgehog.ipynb` provides a way to visualize the vector magnetic field in SHARP data.
 * `feature_extraction.ipynb` takes images from another instrument on SDO, called the Atmospheric Imaging Assembly (AIA), to determine which AIA pixels fall within the SHARP bounding boxes; this code also performs some computer-vision analyses to extract features from AIA data.
 * `calculate_swx_fits.py` calculates spaceweather keywords from vector magnetic field data. The inputs, dependencies, and example useage for `calculate_swx_fits.py` are described below.
-* `disambiguation.py` disambiguates the azimuthal component of the vector magnetic field data and constructs the field vector in spherical coordinate components on a CCD grid.
+* `disambiguation.py` contains several functions that disambiguate the azimuthal component of the vector magnetic field data and constructs the field vector in spherical coordinate components on a CCD grid. See `disambiguate_data.py` for some examples.
 
 Sample data are included in this repository under the test_fits_files directory. All SDO data are publicly available. 
 
