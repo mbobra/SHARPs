@@ -70,9 +70,9 @@ class basic(object):
 
         baseurl = 'http://jsoc.stanford.edu'
         azimuth = fits.open(baseurl+segments.azimuth[0])  
-        field = fits.open(baseurl+segments.azimuth[0]) 
-        inclination = fits.open(baseurl+segments.azimuth[0]) 
-        disambig = fits.open(baseurl+segments.azimuth[0]) 
+        field = fits.open(baseurl+segments.field[0]) 
+        inclination = fits.open(baseurl+segments.inclination[0]) 
+        disambig = fits.open(baseurl+segments.disambig[0]) 
 
         return [keys, azimuth, field, inclination, disambig]
  
