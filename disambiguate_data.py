@@ -6,11 +6,13 @@ This example uses data from the hmi.sharp_720s (Bobra et al. 2014; open-access a
 
 import disambiguation
 
-# fetch the data from JSOC
-keys, azimuth, field, inclination, disambig = disambiguation.basic.get_data('hmi.sharp_720s[377][2011.02.15_00:00:00]')
+# fetch the data from JSOC by providing a recordset specification and a disambiguation method
+query_info = disambiguation.Basic('hmi.sharp_720s[377][2011.02.15_00:00:00]', 2)
+keys, azimuth, field, inclination, disambig = disambiguation.Basic.get_data(query_info)
 
 # disambiguate the azimuthal component of the magnetic field
-disambiguated_azimuth = disambiguation.basic.perform_disambiguation(azimuth, disambig, 2)
+disambiguated_azimuth = disambiguation.Basic.perform_disambiguation(query_info, azimuth, disambig)
 
 # construct the field vector in spherical coordinate components on the CCD grid
-latlon, bptr = disambiguation.coordinate_transform.ccd(disambiguated_azimuth, field, inclination, keys)
+data_object = disambiguation.CoordinateTransform(disambiguated_azimuth, field, inclination, keys)
+latlon, bptr = disambiguation.CoordinateTransform.ccd(data_object)
