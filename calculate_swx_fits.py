@@ -69,10 +69,11 @@ Examples:  ipython:
 
 Written:   Monica Bobra
            1 May 2015
+           23 October 2017 Updated to Python 3.5
 """
 
 # import some modules
-import sunpy, sunpy.map, scipy, numpy as np, sys, math, argparse
+import sunpy, sunpy.map, scipy, numpy as np, sys, math, argparse, pdb
 
 # define some constants
 radsindeg = np.pi/180.
@@ -115,29 +116,29 @@ def main():
     file_bitmask = args.file_bitmask
     file_los     = args.file_los
 
-    print ''
-    print 'These are the files:'
-    print 'file_bz is', file_bz
-    print 'file_by is', file_by
-    print 'file_bx is', file_bx
-    print 'file_bz_err is', file_bz_err
-    print 'file_by_err is', file_by_err
-    print 'file_bx_err is', file_bx_err
-    print 'file_mask is', file_mask
-    print 'file_bitmask is', file_bitmask
-    print 'file_los is', file_los
-    print ''
+    print('')
+    print('These are the files:')
+    print('file_bz is', file_bz)
+    print('file_by is', file_by)
+    print('file_bx is', file_bx)
+    print('file_bz_err is', file_bz_err)
+    print('file_by_err is', file_by_err)
+    print('file_bx_err is', file_bx_err)
+    print('file_mask is', file_mask)
+    print('file_bitmask is', file_bitmask)
+    print('file_los is', file_los)
+    print('')
     
     # get the data
-    x = get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, file_mask, file_bitmask, file_los)
-    bz, by, bx, bz_err, by_err, bx_err, mask, bitmask, nx, ny, header, cdelt1, los = x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10], x[11], x[12]
-
-    print 'These are the keywords:'
+    print('Getting the data.')    
+    bz, by, bx, bz_err, by_err, bx_err, mask, bitmask, nx, ny, header, cdelt1, los = get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, file_mask, file_bitmask, file_los)
+        
+    print('These are the keyword values:')
     # compute the total unsigned flux and associated errors
     mean_vf, mean_vf_err, count_mask  = compute_abs_flux(bz, bz_err, mask, bitmask, nx, ny, header, cdelt1)
-    print 'USFLUX ',mean_vf
-    print 'ERRVF', mean_vf_err
-    print 'CMASK', count_mask
+    print('USFLUX ',mean_vf,'Mx')
+    print('ERRVF', mean_vf_err,'Mx')
+    print('CMASK', count_mask,'pixels')
 
     # compute the horizontal component of the magnetic field and associated errors
     horiz      = compute_bh(bx, by, bz, bx_err, by_err, bz_err, mask, bitmask, nx, ny)
@@ -145,8 +146,8 @@ def main():
 
     # compute the shear angle and associated errors
     mean_gamma, mean_gamma_err = compute_gamma(bx, by, bz, bh, bz_err, bh_err, mask, bitmask, nx, ny, header, cdelt1)
-    print 'MEANGAM ', mean_gamma
-    print 'ERRGAM ', mean_gamma_err
+    print('MEANGAM ', mean_gamma,'degree')
+    print('ERRGAM ', mean_gamma_err,'degree')
 
     # compute the total magnetic field vector and associated errors
     total      = compute_bt(bx, by, bz, bx_err, by_err, bz_err, mask, bitmask, nx, ny)
@@ -154,16 +155,16 @@ def main():
 
     # compute the field gradients and associated errors
     mean_derivative_bt, mean_derivative_bt_err = computeBtderivative(bt, bt_err, nx, ny, mask, bitmask)
-    print 'MEANGBT ',mean_derivative_bt
-    print 'ERRBT ',mean_derivative_bt_err
+    print('MEANGBT ',mean_derivative_bt,'G * Mm^(-1)')
+    print('ERRBT ',mean_derivative_bt_err,'G * Mm^(-1)')
 
     mean_derivative_bh, mean_derivative_bh_err = computeBhderivative(bh, bh_err, nx, ny, mask, bitmask)
-    print 'MEANGBH ',mean_derivative_bt
-    print 'ERRBH ',mean_derivative_bt_err
+    print('MEANGBH ',mean_derivative_bt,'G * Mm^(-1)')
+    print('ERRBH ',mean_derivative_bt_err,'G * Mm^(-1)')
     
     mean_derivative_bz, mean_derivative_bz_err = computeBzderivative(bz, bz_err, nx, ny, mask, bitmask)
-    print 'MEANGBZ ',mean_derivative_bt
-    print 'ERRBZ ',mean_derivative_bt_err
+    print('MEANGBZ ',mean_derivative_bt,'G * Mm^(-1)')
+    print('ERRBZ ',mean_derivative_bt_err,'G * Mm^(-1)')
 
     # compute the vertical current and associated errors
     current                =  computeJz(bx, by, bx_err, by_err, mask, bitmask, nx, ny)
@@ -171,29 +172,29 @@ def main():
 
     # compute the moments of the vertical current density and associated errors
     mean_jz, mean_jz_err, us_i, us_i_err = computeJzmoments(jz, jz_err, derx, dery, mask, bitmask, nx, ny, header, cdelt1, munaught)
-    print 'MEANJZD ', mean_jz
-    print 'ERRJZ ', mean_jz_err
-    print 'TOTUSJZ ', us_i
-    print 'ERRUSI', us_i_err
+    print('MEANJZD ', mean_jz,'mA * m^(−2)')
+    print('ERRJZ ', mean_jz_err,'mA * m^(−2)')
+    print('TOTUSJZ ', us_i,'A')
+    print('ERRUSI', us_i_err,'A')
 
     # compute the twist parameter, alpha, and associated errors 
     mean_alpha, mean_alpha_err = computeAlpha(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, header, cdelt1)
-    print 'MEANALP ', mean_alpha
-    print 'ERRALP ', mean_alpha_err
+    print('MEANALP ', mean_alpha,'Mm^(-1)')
+    print('ERRALP ', mean_alpha_err,'Mm^(-1)')
 
     # compute the moments of the current helicity and associated errors 
     mean_ih, mean_ih_err, total_us_ih, total_us_ih_err, total_abs_ih, total_abs_ih_err = computeHelicity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, header, cdelt1)
-    print 'MEANJZH ', mean_ih
-    print 'ERRMIH ', mean_ih_err
-    print 'TOTUSJH ', total_us_ih
-    print 'ERRTUI ', total_us_ih_err    
-    print 'ABSNJZH ', total_abs_ih
-    print 'ERRTAI ', total_abs_ih_err
+    print('MEANJZH ', mean_ih,'G2 * m^(−1)')
+    print('ERRMIH ', mean_ih_err,'G2 * m^(−1)')
+    print('TOTUSJH ', total_us_ih,'G2 * m^(−1)')
+    print('ERRTUI ', total_us_ih_err,'G2 * m^(−1)')    
+    print('ABSNJZH ', total_abs_ih,'G2 * m^(−1)')
+    print('ERRTAI ', total_abs_ih_err,'G2 * m^(−1)')
 
     # compute the sum of the absolute value per polarity and associated errors
     totaljz, totaljz_err = computeSumAbsPerPolarity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, header, cdelt1, munaught)
-    print 'SAVNCPP ', totaljz
-    print 'ERRJHT ', totaljz_err
+    print('SAVNCPP ', totaljz,'A')
+    print('ERRJHT ', totaljz_err,'A')
 
     # compute a numerical model of the potential field (it has no errors, as the theoretical values are exact) 
     potential = greenpot(bz, nx, ny)
@@ -201,20 +202,20 @@ def main():
 
     # compute the energy stored in the magnetic field and its associated errors
     meanpot, meanpot_err, totpot, totpot_err = computeFreeEnergy(bx_err, by_err, bx, by, bpx, bpy, nx, ny, header, cdelt1, mask, bitmask)
-    print 'MEANPOT ',meanpot
-    print 'ERRMPOT ',meanpot_err    
-    print 'TOTPOT ',totpot
-    print 'ERRTPOT ',totpot_err
+    print('MEANPOT ',meanpot,'erg * cm^(−3)')
+    print('ERRMPOT ',meanpot_err,'erg * cm^(−3)')    
+    print('TOTPOT ',totpot,'erg * cm^(−1)')
+    print('ERRTPOT ',totpot_err,'erg * cm^(−1)')
 
     # compute the degree to which the observed field is sheared and its associated errors
     meanshear_angle, meanshear_angle_err, area_w_shear_gt_45 = computeShearAngle(bx_err, by_err, bz_err, bx, by, bz, bpx, bpy, nx, ny, mask, bitmask)
-    print 'MEANSHR ',meanshear_angle
-    print 'ERRMSHA ',meanshear_angle_err
-    print 'SHRGT45 ',area_w_shear_gt_45
+    print('MEANSHR ',meanshear_angle,'degree')
+    print('ERRMSHA ',meanshear_angle_err,'degree')
+    print('SHRGT45 ',area_w_shear_gt_45,'as a percentage')
 
     # compute the gradient-weighted neutral line length
     Rparam = computeR(los, nx, ny, cdelt1)
-    print 'R_VALUE ', Rparam
+    print('R_VALUE ', Rparam[0],'Mx')
 
 def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, file_mask, file_bitmask, file_los):
 
@@ -288,9 +289,9 @@ def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, f
     ny     = bz.data.shape[0]
     
     # flip the sign of by
-    by.data = -1.0*(np.array(by.data))
+    by_flipped = -1.0*(np.array(by.data))
 
-    return [bz, by, bx, bz_err, by_err, bx_err, mask, bitmask, nx, ny, header, cdelt1, los] 
+    return [bz, by_flipped, bx, bz_err, by_err, bx_err, mask, bitmask, nx, ny, header, cdelt1, los] 
 
 #===========================================
 
@@ -1166,7 +1167,7 @@ def greenpot(bz, nx, ny):
     The underlying assuption of a potential field is that it is Maxwell-stress free.
     The monopole depth is 0.01 pixels.
     """
-    print 'Calculating the potential field. This takes a minute.'
+    print('Calculating the potential field. This takes a minute.')
 
     nnx = nx
     nny = ny
