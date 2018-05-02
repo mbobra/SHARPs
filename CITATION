@@ -1,0 +1,24 @@
+If you make use of any of this code or examples in a scientific publication, please consider citing our paper:
+
+Monica G. Bobra, Xudong Sun, J. Todd Hoeksema, Michael J. Turmon, Yang Liu, Keiji Hayashi, Graham Barnes, K.D. Leka. “The Helioseismic and Magnetic Imager (HMI) Vector Magnetic Field Pipeline: SHARPs - Space-Weather HMI Active Region Patches.” 2014, Solar Physics, 289, 9.
+
+Bibtex entry:
+
+@ARTICLE{2014SoPh..289.3549B,
+   author = {{Bobra}, M.~G. and {Sun}, X. and {Hoeksema}, J.~T. and {Turmon}, M. and 
+	{Liu}, Y. and {Hayashi}, K. and {Barnes}, G. and {Leka}, K.~D.
+	},
+    title = "{The Helioseismic and Magnetic Imager (HMI) Vector Magnetic Field Pipeline: SHARPs - Space-Weather HMI Active Region Patches}",
+  journal = {\solphys},
+archivePrefix = "arXiv",
+   eprint = {1404.1879},
+ primaryClass = "astro-ph.SR",
+ keywords = {Active regions, magnetic fields, Flares, relation to magnetic field, Instrumentation and data management},
+     year = 2014,
+    month = sep,
+   volume = 289,
+    pages = {3549-3578},
+      doi = {10.1007/s11207-014-0529-3},
+   adsurl = {http://adsabs.harvard.edu/abs/2014SoPh..289.3549B},
+  adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
