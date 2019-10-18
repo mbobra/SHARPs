@@ -70,6 +70,7 @@ Examples:  ipython:
 Written:   Monica Bobra
            1 May 2015
            23 October 2017 Updated to Python 3.5
+           18 October 2019 Updated cdelt1 to cdelt1_arcsec + changed header key handling
 """
 
 # import some modules
@@ -131,11 +132,11 @@ def main():
     
     # get the data
     print('Getting the data.')    
-    bz, by, bx, bz_err, by_err, bx_err, mask, bitmask, nx, ny, header, cdelt1, los = get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, file_mask, file_bitmask, file_los)
+    bz, by, bx, bz_err, by_err, bx_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, los = get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, file_mask, file_bitmask, file_los)
         
     print('These are the keyword values:')
     # compute the total unsigned flux and associated errors
-    mean_vf, mean_vf_err, count_mask  = compute_abs_flux(bz, bz_err, mask, bitmask, nx, ny, header, cdelt1)
+    mean_vf, mean_vf_err, count_mask  = compute_abs_flux(bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1)
     print('USFLUX ',mean_vf,'Mx')
     print('ERRVF', mean_vf_err,'Mx')
     print('CMASK', count_mask,'pixels')
@@ -145,7 +146,7 @@ def main():
     bh, bh_err = horiz[0], horiz[1]
 
     # compute the shear angle and associated errors
-    mean_gamma, mean_gamma_err = compute_gamma(bx, by, bz, bh, bz_err, bh_err, mask, bitmask, nx, ny, header, cdelt1)
+    mean_gamma, mean_gamma_err = compute_gamma(bx, by, bz, bh, bz_err, bh_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
     print('MEANGAM ', mean_gamma,'degree')
     print('ERRGAM ', mean_gamma_err,'degree')
 
@@ -171,19 +172,19 @@ def main():
     jz, jz_err, derx, dery = current[0], current[1], current[2], current[3]
 
     # compute the moments of the vertical current density and associated errors
-    mean_jz, mean_jz_err, us_i, us_i_err = computeJzmoments(jz, jz_err, derx, dery, mask, bitmask, nx, ny, header, cdelt1, munaught)
+    mean_jz, mean_jz_err, us_i, us_i_err = computeJzmoments(jz, jz_err, derx, dery, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, munaught)
     print('MEANJZD ', mean_jz,'mA * m^(−2)')
     print('ERRJZ ', mean_jz_err,'mA * m^(−2)')
     print('TOTUSJZ ', us_i,'A')
     print('ERRUSI', us_i_err,'A')
 
     # compute the twist parameter, alpha, and associated errors 
-    mean_alpha, mean_alpha_err = computeAlpha(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, header, cdelt1)
+    mean_alpha, mean_alpha_err = computeAlpha(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
     print('MEANALP ', mean_alpha,'Mm^(-1)')
     print('ERRALP ', mean_alpha_err,'Mm^(-1)')
 
     # compute the moments of the current helicity and associated errors 
-    mean_ih, mean_ih_err, total_us_ih, total_us_ih_err, total_abs_ih, total_abs_ih_err = computeHelicity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, header, cdelt1)
+    mean_ih, mean_ih_err, total_us_ih, total_us_ih_err, total_abs_ih, total_abs_ih_err = computeHelicity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
     print('MEANJZH ', mean_ih,'G2 * m^(−1)')
     print('ERRMIH ', mean_ih_err,'G2 * m^(−1)')
     print('TOTUSJH ', total_us_ih,'G2 * m^(−1)')
@@ -192,7 +193,7 @@ def main():
     print('ERRTAI ', total_abs_ih_err,'G2 * m^(−1)')
 
     # compute the sum of the absolute value per polarity and associated errors
-    totaljz, totaljz_err = computeSumAbsPerPolarity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, header, cdelt1, munaught)
+    totaljz, totaljz_err = computeSumAbsPerPolarity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, munaught)
     print('SAVNCPP ', totaljz,'A')
     print('ERRJHT ', totaljz_err,'A')
 
@@ -201,7 +202,7 @@ def main():
     bpx, bpy  = potential[0], potential[1]
 
     # compute the energy stored in the magnetic field and its associated errors
-    meanpot, meanpot_err, totpot, totpot_err = computeFreeEnergy(bx_err, by_err, bx, by, bpx, bpy, nx, ny, header, cdelt1, mask, bitmask)
+    meanpot, meanpot_err, totpot, totpot_err = computeFreeEnergy(bx_err, by_err, bx, by, bpx, bpy, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, mask, bitmask)
     print('MEANPOT ',meanpot,'erg * cm^(−3)')
     print('ERRMPOT ',meanpot_err,'erg * cm^(−3)')    
     print('TOTPOT ',totpot,'erg * cm^(−1)')
@@ -214,7 +215,7 @@ def main():
     print('SHRGT45 ',area_w_shear_gt_45,'as a percentage')
 
     # compute the gradient-weighted neutral line length
-    Rparam = computeR(los, nx, ny, cdelt1)
+    Rparam = computeR(los, nx, ny, cdelt1_arcsec)
     print('R_VALUE ', Rparam[0],'Mx')
 
 def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, file_mask, file_bitmask, file_los):
@@ -281,8 +282,14 @@ def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, f
     # get metadata
     header = bz.meta
 
+    # get fits header key information
+    rsun_ref = header['rsun_ref']
+    dsun_obs = header['dsun_obs']
+    rsun_obs = header['rsun_obs']
+    cdelt1   = header['cdelt1']
+
     # convert cdelt1 from degrees to arcsec
-    cdelt1 = (math.atan((header['rsun_ref']*header['cdelt1']*radsindeg)/(header['dsun_obs'])))*(1/radsindeg)*(3600.)
+    cdelt1_arcsec = (math.atan((rsun_ref*cdelt1*radsindeg)/(dsun_obs)))*(1/radsindeg)*(3600.)
 
     # get dimensions
     nx     = bz.data.shape[1]
@@ -291,11 +298,11 @@ def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, f
     # flip the sign of by
     by_flipped = -1.0*(np.array(by.data))
 
-    return [bz, by_flipped, bx, bz_err, by_err, bx_err, mask, bitmask, nx, ny, header, cdelt1, los] 
+    return [bz, by_flipped, bx, bz_err, by_err, bx_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, los] 
 
 #===========================================
 
-def compute_abs_flux(bz, bz_err, mask, bitmask, nx, ny, header, cdelt1):
+def compute_abs_flux(bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec):
 
     """function: compute_abs_flux
 
@@ -328,8 +335,8 @@ def compute_abs_flux(bz, bz_err, mask, bitmask, nx, ny, header, cdelt1):
             err += bz_err.data[j,i]*bz_err.data[j,i];
             count_mask += 1
 
-    mean_vf     = sum*cdelt1*cdelt1*(header['rsun_ref']/header['rsun_obs'])*(header['rsun_ref']/header['rsun_obs'])*100.0*100.0
-    mean_vf_err = (np.sqrt(err))*abs(cdelt1*cdelt1*(header['rsun_ref']/header['rsun_obs'])*(header['rsun_ref']/header['rsun_obs'])*100.0*100.0)
+    mean_vf     = sum*cdelt1_arcsec*cdelt1_arcsec*(rsun_ref/rsun_obs)*(rsun_ref/rsun_obs)*100.0*100.0
+    mean_vf_err = (np.sqrt(err))*abs(cdelt1_arcsec*cdelt1_arcsec*(rsun_ref/rsun_obs)*(rsun_ref/rsun_obs)*100.0*100.0)
 
     return [mean_vf, mean_vf_err, count_mask]
        
@@ -359,7 +366,7 @@ def compute_bh(bx, by, bz, bx_err, by_err, bz_err, mask, bitmask, nx, ny):
 
 #===========================================
 
-def compute_gamma(bx, by, bz, bh, bz_err, bh_err, mask, bitmask, nx, ny, header, cdelt1):
+def compute_gamma(bx, by, bz, bh, bz_err, bh_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec):
 
     """function: compute_gamma
 
@@ -742,7 +749,7 @@ def computeJz(bx, by, bx_err, by_err, mask, bitmask, nx, ny):
 
 #===========================================
 
-def computeJzmoments(jz, jz_err, derx, dery, mask, bitmask, nx, ny, header, cdelt1, munaught):
+def computeJzmoments(jz, jz_err, derx, dery, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, munaught):
 
     """function: computeJzmoments
 
@@ -767,22 +774,22 @@ def computeJzmoments(jz, jz_err, derx, dery, mask, bitmask, nx, ny, header, cdel
                 continue
             if np.isnan(dery[j,i]):
                 continue        
-            curl += (jz[j,i])*(1/cdelt1)*(header['rsun_obs']/header['rsun_ref'])*(0.00010)*(1/munaught )*(1000.)
-            us_i += abs(jz[j,i])*(cdelt1/1)*(header['rsun_ref']/header['rsun_obs'])*(0.00010)*(1/munaught)
+            curl += (jz[j,i])*(1/cdelt1_arcsec)*(rsun_obs/rsun_ref)*(0.00010)*(1/munaught )*(1000.)
+            us_i += abs(jz[j,i])*(cdelt1_arcsec/1)*(rsun_ref/rsun_obs)*(0.00010)*(1/munaught)
             err  += (jz_err[j,i]*jz_err[j,i])
             count_mask += 1
             
     mean_jz     = curl/(count_mask)
-    mean_jz_err = (np.sqrt(err)/count_mask)*((1/cdelt1)*(header['rsun_obs']/header['rsun_ref'])*(0.00010)*(1/munaught)*(1000.))
+    mean_jz_err = (np.sqrt(err)/count_mask)*((1/cdelt1_arcsec)*(rsun_obs/rsun_ref)*(0.00010)*(1/munaught)*(1000.))
     
     us_i        = (us_i)
-    us_i_err    = (np.sqrt(err))*((cdelt1/1)*(header['rsun_ref']/header['rsun_obs'])*(0.00010)*(1/munaught ))
+    us_i_err    = (np.sqrt(err))*((cdelt1_arcsec/1)*(rsun_ref/rsun_obs)*(0.00010)*(1/munaught ))
 
     return [mean_jz, mean_jz_err, us_i, us_i_err]
 
 #===========================================
 
-def computeAlpha(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, header, cdelt1):
+def computeAlpha(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec):
 
     """function: computeAlpha
 
@@ -803,7 +810,7 @@ def computeAlpha(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, header, cdelt1):
     """
 
     alpha_total         = 0.0
-    C                   = ((1/cdelt1)*(header['rsun_obs']/header['rsun_ref'])*(1000000.))
+    C                   = ((1/cdelt1_arcsec)*(rsun_obs/rsun_ref)*(1000000.))
     total               = 0.0
     A                   = 0.0
     B                   = 0.0
@@ -846,7 +853,7 @@ def computeAlpha(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, header, cdelt1):
    
 #===========================================
 
-def computeHelicity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, header, cdelt1):
+def computeHelicity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec):
 
     """function: computeHelicity
 
@@ -880,23 +887,23 @@ def computeHelicity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, header, cdelt
                 continue
             if np.isnan(bz_err.data[j,i]):
                 continue
-            sum        += (jz[j,i]*bz.data[j,i])*(1/cdelt1)*(header['rsun_obs']/header['rsun_ref'])    #contributes to MEANJZH and ABSNJZH
-            sum2       += abs(jz[j,i]*bz.data[j,i])*(1/cdelt1)*(header['rsun_obs']/header['rsun_ref']) # contributes to TOTUSJH
+            sum        += (jz[j,i]*bz.data[j,i])*(1/cdelt1_arcsec)*(rsun_obs/rsun_ref)    #contributes to MEANJZH and ABSNJZH
+            sum2       += abs(jz[j,i]*bz.data[j,i])*(1/cdelt1_arcsec)*(rsun_obs/rsun_ref) # contributes to TOTUSJH
             err        += (jz_err[j,i]*jz_err[j,i]*bz.data[j,i]*bz.data[j,i]) + (bz_err.data[j,i]*bz_err.data[j,i]*jz[j,i]*jz[j,i])
             count_mask += 1
 
     mean_ih          = sum/count_mask                                                               # Units are G^2 / m ; keyword is MEANJZH
     total_us_ih      = sum2                                                                         # Units are G^2 / m ; keyword is TOTUSJH
     total_abs_ih     = abs(sum)                                                                     # Units are G^2 / m ; keyword is ABSNJZH
-    mean_ih_err      = (np.sqrt(err)/count_mask)*(1/cdelt1)*(header['rsun_obs']/header['rsun_ref']) # error in the quantity MEANJZH
-    total_us_ih_err  = (np.sqrt(err))*(1/cdelt1)*(header['rsun_obs']/header['rsun_ref'])            # error in the quantity TOTUSJH
-    total_abs_ih_err = (np.sqrt(err))*(1/cdelt1)*(header['rsun_obs']/header['rsun_ref'])            # error in the quantity ABSNJZH
+    mean_ih_err      = (np.sqrt(err)/count_mask)*(1/cdelt1_arcsec)*(rsun_obs/rsun_ref) # error in the quantity MEANJZH
+    total_us_ih_err  = (np.sqrt(err))*(1/cdelt1_arcsec)*(rsun_obs/rsun_ref)            # error in the quantity TOTUSJH
+    total_abs_ih_err = (np.sqrt(err))*(1/cdelt1_arcsec)*(rsun_obs/rsun_ref)            # error in the quantity ABSNJZH
     
     return [mean_ih, mean_ih_err, total_us_ih, total_us_ih_err, total_abs_ih, total_abs_ih_err]
 
 #===========================================
 
-def computeSumAbsPerPolarity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, header, cdelt1, munaught):
+def computeSumAbsPerPolarity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, munaught):
 
     """function: computeSumAbsPerPolarity
 
@@ -925,20 +932,20 @@ def computeSumAbsPerPolarity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, head
             if np.isnan(bz.data[j,i]):
                 continue
             if (bz.data[j,i] > 0):
-                sum1 += ( jz[j,i])*(1/cdelt1)*(0.00010)*(1/munaught)*(header['rsun_ref']/header['rsun_obs'])
+                sum1 += ( jz[j,i])*(1/cdelt1_arcsec)*(0.00010)*(1/munaught)*(rsun_ref/rsun_obs)
             if (bz.data[j,i] <= 0):
-                sum2 += ( jz[j,i])*(1/cdelt1)*(0.00010)*(1/munaught)*(header['rsun_ref']/header['rsun_obs'])
+                sum2 += ( jz[j,i])*(1/cdelt1_arcsec)*(0.00010)*(1/munaught)*(rsun_ref/rsun_obs)
             err += (jz_err[j,i]*jz_err[j,i]);
             count_mask += 1
 
     totaljz     = abs(sum1) + abs(sum2)
-    totaljz_err = np.sqrt(err)*(1/cdelt1)*abs((0.00010)*(1/munaught)*(header['rsun_ref']/header['rsun_obs']))
+    totaljz_err = np.sqrt(err)*(1/cdelt1_arcsec)*abs((0.00010)*(1/munaught)*(rsun_ref/rsun_obs))
 
     return [totaljz, totaljz_err]
 
 #===========================================
 
-def computeFreeEnergy(bx_err, by_err, bx, by, bpx, bpy, nx, ny, header, cdelt1, mask, bitmask):
+def computeFreeEnergy(bx_err, by_err, bx, by, bpx, bpy, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, mask, bitmask):
     """
     function: computeFreeEnergy
 
@@ -966,7 +973,7 @@ def computeFreeEnergy(bx_err, by_err, bx, by, bpx, bpy, nx, ny, header, cdelt1, 
                 continue
             if np.isnan(by.data[j,i]):
                 continue
-            sum  += ( ((bx.data[j,i] - bpx[j,i])*(bx.data[j,i] - bpx[j,i])) + ((by.data[j,i] - bpy[j,i])*(by.data[j,i] - bpy[j,i])) )*(cdelt1*cdelt1*(header['rsun_ref']/header['rsun_obs'])*(header['rsun_ref']/header['rsun_obs'])*100.0*100.0)
+            sum  += ( ((bx.data[j,i] - bpx[j,i])*(bx.data[j,i] - bpx[j,i])) + ((by.data[j,i] - bpy[j,i])*(by.data[j,i] - bpy[j,i])) )*(cdelt1_arcsec*cdelt1_arcsec*(rsun_ref/rsun_obs)*(rsun_ref/rsun_obs)*100.0*100.0)
             sum1 += (  ((bx.data[j,i] - bpx[j,i])*(bx.data[j,i] - bpx[j,i])) + ((by.data[j,i] - bpy[j,i])*(by.data[j,i] - bpy[j,i])) )
             err  += 4.0*(bx.data[j,i] - bpx[j,i])*(bx.data[j,i] - bpx[j,i])*(bx_err.data[j,i]*bx_err.data[j,i]) + 4.0*(by.data[j,i] - bpy[j,i])*(by.data[j,i] - bpy[j,i])*(by_err.data[j,i]*by_err.data[j,i])
             count_mask += 1
@@ -977,7 +984,7 @@ def computeFreeEnergy(bx_err, by_err, bx, by, bpx, bpy, nx, ny, header, cdelt1, 
     
     # Units of sum are ergs/cm^3, units of factor are cm^2/pix^2; therefore, units of totpotptr are ergs per centimeter
     totpot       = (sum)/(8.*np.pi)
-    totpot_err   = (np.sqrt(err))*abs(cdelt1*cdelt1*(header['rsun_ref']/header['rsun_obs'])*(header['rsun_ref']/header['rsun_obs'])*100.0*100.0*(1/(8.*np.pi)))
+    totpot_err   = (np.sqrt(err))*abs(cdelt1_arcsec*cdelt1_arcsec*(rsun_ref/rsun_obs)*(rsun_ref/rsun_obs)*100.0*100.0*(1/(8.*np.pi)))
     
     return [meanpot, meanpot_err, totpot, totpot_err]
 
@@ -1057,7 +1064,7 @@ def computeShearAngle(bx_err, by_err, bz_err, bx, by, bz, bpx, bpy, nx, ny, mask
 
 #===========================================
 
-def computeR(los, nx, ny, cdelt1):
+def computeR(los, nx, ny, cdelt1_arcsec):
     """
     function: computeR
 
@@ -1067,7 +1074,7 @@ def computeR(los, nx, ny, cdelt1):
     sum   = 0.0
     err   = 0.0
     sigma = 10.0/2.3548
-    scale = int(round(2.0/cdelt1))
+    scale = int(round(2.0/cdelt1_arcsec))
 
     # =============== [STEP 1] =============== 
     # bin the line-of-sight magnetogram down by a factor of scale using nearest-neighbor interpolation
