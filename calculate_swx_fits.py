@@ -61,16 +61,16 @@ Inputs:    All SDO/HMI data is stored in a pSQL database; the web interface is h
 Usage:     This code depends on the numpy, scipy, and sunpy libraries.
 
 Examples:  ipython: 
-           > %run calculate_swx_fits.py --file_bz=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br.fits --file_by=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt.fits --file_bx=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp.fits --file_bz_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br_err.fits --file_by_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt_err.fits --file_bx_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp_err.fits --file_mask=hmi.sharp_cea_720s.377.20110215_020000_TAI.conf_disambig.fits --file_bitmask=hmi.sharp_cea_720s.377.20110215_020000_TAI.bitmap.fits --file_los=hmi.sharp_cea_720s.377.20110215_020000_TAI.magnetogram.fits
+           > %run calculate_swx_fits.py --file_bz=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br.fits --file_by=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt.fits --file_bx=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp.fits --file_bz_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br_err.fits --file_by_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt_err.fits --file_bx_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp_err.fits --file_conf_disambig=hmi.sharp_cea_720s.377.20110215_020000_TAI.conf_disambig.fits --file_bitmap=hmi.sharp_cea_720s.377.20110215_020000_TAI.bitmap.fits --file_los=hmi.sharp_cea_720s.377.20110215_020000_TAI.magnetogram.fits
 
            command line:
            > python calculate_swx_fits.py --help
-           > python calculate_swx_fits.py --file_bz=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br.fits --file_by=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt.fits --file_bx=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp.fits --file_bz_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br_err.fits --file_by_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt_err.fits --file_bx_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp_err.fits --file_mask=hmi.sharp_cea_720s.377.20110215_020000_TAI.conf_disambig.fits --file_bitmask=hmi.sharp_cea_720s.377.20110215_020000_TAI.bitmap.fits  --file_los=hmi.sharp_cea_720s.377.20110215_020000_TAI.magnetogram.fits
+           > python calculate_swx_fits.py --file_bz=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br.fits --file_by=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt.fits --file_bx=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp.fits --file_bz_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br_err.fits --file_by_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt_err.fits --file_bx_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp_err.fits --file_conf_disambig=hmi.sharp_cea_720s.377.20110215_020000_TAI.conf_disambig.fits --file_bitmap=hmi.sharp_cea_720s.377.20110215_020000_TAI.bitmap.fits  --file_los=hmi.sharp_cea_720s.377.20110215_020000_TAI.magnetogram.fits
 
 Written:   Monica Bobra
            1 May 2015
            23 October 2017 Updated to Python 3.5
-           18 October 2019 Updated cdelt1 to cdelt1_arcsec + changed header key handling
+           18 October 2019 Updated cdelt1 to cdelt1_arcsec + changed header key & array handling 
 """
 
 # import some modules
@@ -90,8 +90,8 @@ def main():
     file_bz_err  = ''
     file_by_err  = ''
     file_bx_err  = ''
-    file_mask    = ''
-    file_bitmask = ''
+    file_conf_disambig    = ''
+    file_bitmap = ''
     file_los     = ''
     
     parser = argparse.ArgumentParser(description='calculate spaceweather keywords from vector magnetic field data')
@@ -101,21 +101,21 @@ def main():
     parser.add_argument('-d', '--file_bz_err', type=str, help='FITS file containing error in Bz-component of magnetic field vector', required=True)
     parser.add_argument('-e', '--file_by_err', type=str, help='FITS file containing error in By-component of magnetic field vector', required=True)
     parser.add_argument('-f', '--file_bx_err', type=str, help='FITS file containing error in Bx-component of magnetic field vector', required=True)
-    parser.add_argument('-g', '--file_mask', type=str, help='FITS file with bits identifying high-confidence in disambiguation result', required=True)
-    parser.add_argument('-i', '--file_bitmask', type=str, help='FITS file with bits identifying the active region', required=True)
+    parser.add_argument('-g', '--file_conf_disambig', type=str, help='FITS file with bits identifying high-confidence in disambiguation result', required=True)
+    parser.add_argument('-i', '--file_bitmap', type=str, help='FITS file with bits identifying the active region', required=True)
     parser.add_argument('-j', '--file_los', type=str, help='FITS file containing line-of-sight component of magnetic field', required=True)
     parser._optionals.title = "flag arguments"
     args = parser.parse_args()
 
-    file_bz      = args.file_bz
-    file_by      = args.file_by
-    file_bx      = args.file_bx
-    file_bz_err  = args.file_bz_err
-    file_by_err  = args.file_by_err
-    file_bx_err  = args.file_bx_err
-    file_mask    = args.file_mask
-    file_bitmask = args.file_bitmask
-    file_los     = args.file_los
+    file_bz            = args.file_bz
+    file_by            = args.file_by
+    file_bx            = args.file_bx
+    file_bz_err        = args.file_bz_err
+    file_by_err        = args.file_by_err
+    file_bx_err        = args.file_bx_err
+    file_conf_disambig = args.file_conf_disambig
+    file_bitmap        = args.file_bitmap
+    file_los           = args.file_los
 
     print('')
     print('These are the files:')
@@ -125,66 +125,66 @@ def main():
     print('file_bz_err is', file_bz_err)
     print('file_by_err is', file_by_err)
     print('file_bx_err is', file_bx_err)
-    print('file_mask is', file_mask)
-    print('file_bitmask is', file_bitmask)
+    print('file_conf_disambig is', file_conf_disambig)
+    print('file_bitmap is', file_bitmap)
     print('file_los is', file_los)
     print('')
     
     # get the data
     print('Getting the data.')    
-    bz, by, bx, bz_err, by_err, bx_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, los = get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, file_mask, file_bitmask, file_los)
+    bz, by, bx, bz_err, by_err, bx_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, los = get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, file_conf_disambig, file_bitmap, file_los)
         
     print('These are the keyword values:')
     # compute the total unsigned flux and associated errors
-    mean_vf, mean_vf_err, count_mask  = compute_abs_flux(bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
+    mean_vf, mean_vf_err, count_mask  = compute_abs_flux(bz, bz_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
     print('USFLUX ',mean_vf,'Mx')
     print('ERRVF', mean_vf_err,'Mx')
     print('CMASK', count_mask,'pixels')
 
     # compute the horizontal component of the magnetic field and associated errors
-    horiz      = compute_bh(bx, by, bz, bx_err, by_err, bz_err, mask, bitmask, nx, ny)
+    horiz      = compute_bh(bx, by, bz, bx_err, by_err, bz_err, conf_disambig, bitmap, nx, ny)
     bh, bh_err = horiz[0], horiz[1]
 
     # compute the shear angle and associated errors
-    mean_gamma, mean_gamma_err = compute_gamma(bx, by, bz, bh, bz_err, bh_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
+    mean_gamma, mean_gamma_err = compute_gamma(bx, by, bz, bh, bz_err, bh_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
     print('MEANGAM ', mean_gamma,'degree')
     print('ERRGAM ', mean_gamma_err,'degree')
 
     # compute the total magnetic field vector and associated errors
-    total      = compute_bt(bx, by, bz, bx_err, by_err, bz_err, mask, bitmask, nx, ny)
+    total      = compute_bt(bx, by, bz, bx_err, by_err, bz_err, conf_disambig, bitmap, nx, ny)
     bt, bt_err = total[0], total[1]
 
     # compute the field gradients and associated errors
-    mean_derivative_bt, mean_derivative_bt_err = computeBtderivative(bt, bt_err, nx, ny, mask, bitmask)
+    mean_derivative_bt, mean_derivative_bt_err = computeBtderivative(bt, bt_err, nx, ny, conf_disambig, bitmap)
     print('MEANGBT ',mean_derivative_bt,'G * Mm^(-1)')
     print('ERRBT ',mean_derivative_bt_err,'G * Mm^(-1)')
 
-    mean_derivative_bh, mean_derivative_bh_err = computeBhderivative(bh, bh_err, nx, ny, mask, bitmask)
+    mean_derivative_bh, mean_derivative_bh_err = computeBhderivative(bh, bh_err, nx, ny, conf_disambig, bitmap)
     print('MEANGBH ',mean_derivative_bt,'G * Mm^(-1)')
     print('ERRBH ',mean_derivative_bt_err,'G * Mm^(-1)')
     
-    mean_derivative_bz, mean_derivative_bz_err = computeBzderivative(bz, bz_err, nx, ny, mask, bitmask)
+    mean_derivative_bz, mean_derivative_bz_err = computeBzderivative(bz, bz_err, nx, ny, conf_disambig, bitmap)
     print('MEANGBZ ',mean_derivative_bt,'G * Mm^(-1)')
     print('ERRBZ ',mean_derivative_bt_err,'G * Mm^(-1)')
 
     # compute the vertical current and associated errors
-    current                =  computeJz(bx, by, bx_err, by_err, mask, bitmask, nx, ny)
+    current                =  computeJz(bx, by, bx_err, by_err, conf_disambig, bitmap, nx, ny)
     jz, jz_err, derx, dery = current[0], current[1], current[2], current[3]
 
     # compute the moments of the vertical current density and associated errors
-    mean_jz, mean_jz_err, us_i, us_i_err = computeJzmoments(jz, jz_err, derx, dery, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, munaught)
+    mean_jz, mean_jz_err, us_i, us_i_err = computeJzmoments(jz, jz_err, derx, dery, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, munaught)
     print('MEANJZD ', mean_jz,'mA * m^(−2)')
     print('ERRJZ ', mean_jz_err,'mA * m^(−2)')
     print('TOTUSJZ ', us_i,'A')
     print('ERRUSI', us_i_err,'A')
 
     # compute the twist parameter, alpha, and associated errors 
-    mean_alpha, mean_alpha_err = computeAlpha(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
+    mean_alpha, mean_alpha_err = computeAlpha(jz, jz_err, bz, bz_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
     print('MEANALP ', mean_alpha,'Mm^(-1)')
     print('ERRALP ', mean_alpha_err,'Mm^(-1)')
 
     # compute the moments of the current helicity and associated errors 
-    mean_ih, mean_ih_err, total_us_ih, total_us_ih_err, total_abs_ih, total_abs_ih_err = computeHelicity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
+    mean_ih, mean_ih_err, total_us_ih, total_us_ih_err, total_abs_ih, total_abs_ih_err = computeHelicity(jz, jz_err, bz, bz_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
     print('MEANJZH ', mean_ih,'G2 * m^(−1)')
     print('ERRMIH ', mean_ih_err,'G2 * m^(−1)')
     print('TOTUSJH ', total_us_ih,'G2 * m^(−1)')
@@ -193,7 +193,7 @@ def main():
     print('ERRTAI ', total_abs_ih_err,'G2 * m^(−1)')
 
     # compute the sum of the absolute value per polarity and associated errors
-    totaljz, totaljz_err = computeSumAbsPerPolarity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, munaught)
+    totaljz, totaljz_err = computeSumAbsPerPolarity(jz, jz_err, bz, bz_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, munaught)
     print('SAVNCPP ', totaljz,'A')
     print('ERRJHT ', totaljz_err,'A')
 
@@ -202,14 +202,14 @@ def main():
     bpx, bpy  = potential[0], potential[1]
 
     # compute the energy stored in the magnetic field and its associated errors
-    meanpot, meanpot_err, totpot, totpot_err = computeFreeEnergy(bx_err, by_err, bx, by, bpx, bpy, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, mask, bitmask)
+    meanpot, meanpot_err, totpot, totpot_err = computeFreeEnergy(bx_err, by_err, bx, by, bpx, bpy, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, conf_disambig, bitmap)
     print('MEANPOT ',meanpot,'erg * cm^(−3)')
     print('ERRMPOT ',meanpot_err,'erg * cm^(−3)')    
     print('TOTPOT ',totpot,'erg * cm^(−1)')
     print('ERRTPOT ',totpot_err,'erg * cm^(−1)')
 
     # compute the degree to which the observed field is sheared and its associated errors
-    meanshear_angle, meanshear_angle_err, area_w_shear_gt_45 = computeShearAngle(bx_err, by_err, bz_err, bx, by, bz, bpx, bpy, nx, ny, mask, bitmask)
+    meanshear_angle, meanshear_angle_err, area_w_shear_gt_45 = computeShearAngle(bx_err, by_err, bz_err, bx, by, bz, bpx, bpy, nx, ny, conf_disambig, bitmap)
     print('MEANSHR ',meanshear_angle,'degree')
     print('ERRMSHA ',meanshear_angle_err,'degree')
     print('SHRGT45 ',area_w_shear_gt_45,'as a percentage')
@@ -218,7 +218,7 @@ def main():
     Rparam = computeR(los, nx, ny, cdelt1_arcsec)
     print('R_VALUE ', Rparam[0],'Mx')
 
-def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, file_mask, file_bitmask, file_los):
+def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, file_conf_disambig, file_bitmap, file_los):
 
     """function: get_data
 
@@ -226,62 +226,73 @@ def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, f
     """
     
     try:
-        bz = sunpy.map.Map(file_bz)
+        bz_map = sunpy.map.Map(file_bz)
     except:
         print("Could not open the bz fits file")
         sys.exit(1)
 
     try:
-        by = sunpy.map.Map(file_by)
+        by_map = sunpy.map.Map(file_by)
     except:
         print("Could not open the by fits file")
         sys.exit(1)
 
     try:
-        bx = sunpy.map.Map(file_bx)
+        bx_map = sunpy.map.Map(file_bx)
     except:
         print("Could not open the bx fits file")
         sys.exit(1)
 
     try:
-        bz_err = sunpy.map.Map(file_bz_err)
+        bz_err_map = sunpy.map.Map(file_bz_err)
     except:
         print("Could not open the bz_err fits file")
         sys.exit(1)
 
     try:
-        by_err = sunpy.map.Map(file_by_err)
+        by_err_map = sunpy.map.Map(file_by_err)
     except:
         print("Could not open the by_err fits file")
         sys.exit(1)
 
     try:
-        bx_err = sunpy.map.Map(file_bx_err)
+        bx_err_map = sunpy.map.Map(file_bx_err)
     except:
         print("Could not open the bx_err fits file")
         sys.exit(1)
 
     try:
-        mask = sunpy.map.Map(file_mask)
+        conf_disambig_map = sunpy.map.Map(file_conf_disambig)
     except:
-        print("Could not open the mask fits file")
+        print("Could not open the conf_disambig fits file")
         sys.exit(1)
 
     try:
-        bitmask = sunpy.map.Map(file_bitmask)
+        bitmap_map = sunpy.map.Map(file_bitmap)
     except:
-        print("Could not open the bitmask fits file")
+        print("Could not open the bitmap fits file")
         sys.exit(1)
 
     try:
-        los = sunpy.map.Map(file_los)
+        los_map = sunpy.map.Map(file_los)
     except:
         print("Could not open the LoS fits file")
         sys.exit(1)
         
     # get metadata
     header = bz.meta
-
+    
+    # get array data
+    bz                = bz_map.data
+    by                = by_map.data
+    bx_map            = bx_map.data
+    bz_err_map        = bz_err_map.data
+    by_err_map        = by_err_map.data
+    bx_err_map        = bx_err_map.data
+    conf_disambig_map = conf_disambig_map.data
+    bitmap_map        = bitmap_map.data
+    los_map           = los_map.data
+    
     # get fits header key information
     rsun_ref = header['rsun_ref']
     dsun_obs = header['dsun_obs']
@@ -292,17 +303,17 @@ def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, f
     cdelt1_arcsec = (math.atan((rsun_ref*cdelt1*radsindeg)/(dsun_obs)))*(1/radsindeg)*(3600.)
 
     # get dimensions
-    nx     = bz.data.shape[1]
-    ny     = bz.data.shape[0]
+    nx     = bz.shape[1]
+    ny     = bz.shape[0]
     
     # flip the sign of by
-    by_flipped = -1.0*(np.array(by.data))
+    by_flipped = -1.0*(np.array(by))
 
-    return [bz, by_flipped, bx, bz_err, by_err, bx_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, los] 
+    return [bz, by_flipped, bx, bz_err, by_err, bx_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, los] 
 
 #===========================================
 
-def compute_abs_flux(bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec):
+def compute_abs_flux(bz, bz_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec):
 
     """function: compute_abs_flux
 
@@ -327,12 +338,12 @@ def compute_abs_flux(bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdel
     
     for j in range(ny):
         for i in range(nx):
-            if ( mask.data[j,i] < 70 or bitmask.data[j,i] < 30 ):
+            if ( conf_disambig[j,i] < 70 or bitmap[j,i] < 30 ):
                 continue
-            if np.isnan(bz.data[j,i]):
+            if np.isnan(bz[j,i]):
                 continue
-            sum += abs(bz.data[j,i])
-            err += bz_err.data[j,i]*bz_err.data[j,i];
+            sum += abs(bz[j,i])
+            err += bz_err[j,i]*bz_err[j,i];
             count_mask += 1
 
     mean_vf     = sum*cdelt1_arcsec*cdelt1_arcsec*(rsun_ref/rsun_obs)*(rsun_ref/rsun_obs)*100.0*100.0
@@ -342,7 +353,7 @@ def compute_abs_flux(bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdel
        
 #===========================================
 
-def compute_bh(bx, by, bz, bx_err, by_err, bz_err, mask, bitmask, nx, ny):
+def compute_bh(bx, by, bz, bx_err, by_err, bz_err, conf_disambig, bitmap, nx, ny):
 
     """function: compute_bh
 
@@ -355,18 +366,18 @@ def compute_bh(bx, by, bz, bx_err, by_err, bz_err, mask, bitmask, nx, ny):
     
     for j in range(ny):
         for i in range(nx):
-            if (np.isnan(bx.data[j,i]) or np.isnan(by.data[j,i])):
+            if (np.isnan(bx[j,i]) or np.isnan(by[j,i])):
                 bh[j,i] = np.nan
                 bh_err[j,i] = np.nan
                 continue
-            bh[j,i]     = np.sqrt(bx.data[j,i]*bx.data[j,i] + by.data[j,i]*by.data[j,i])
-            bh_err[j,i] = np.sqrt(bx.data[j,i]*bx.data[j,i]*bx_err.data[j,i]*bx_err.data[j,i] + by.data[j,i]*by.data[j,i]*by_err.data[j,i]*by_err.data[j,i])/ bh[j,i]
+            bh[j,i]     = np.sqrt(bx[j,i]*bx[j,i] + by[j,i]*by[j,i])
+            bh_err[j,i] = np.sqrt(bx[j,i]*bx[j,i]*bx_err[j,i]*bx_err[j,i] + by[j,i]*by[j,i]*by_err[j,i]*by_err[j,i])/ bh[j,i]
 
     return [bh, bh_err]
 
 #===========================================
 
-def compute_gamma(bx, by, bz, bh, bz_err, bh_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec):
+def compute_gamma(bx, by, bz, bh, bz_err, bh_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec):
 
     """function: compute_gamma
 
@@ -382,14 +393,14 @@ def compute_gamma(bx, by, bz, bh, bz_err, bh_err, mask, bitmask, nx, ny, rsun_re
 
     for j in range(ny):
         for i in range(nx):
-            if ( mask.data[j,i] < 70 or bitmask.data[j,i] < 30 ):
+            if ( conf_disambig[j,i] < 70 or bitmap[j,i] < 30 ):
                 continue
-            if ( np.isnan(bz.data[j,i]) or np.isnan(bz_err.data[j,i]) or np.isnan(bh[j,i]) or np.isnan(bh_err[j,i]) or bz.data[j,i] == 0 ):
+            if ( np.isnan(bz[j,i]) or np.isnan(bz_err[j,i]) or np.isnan(bh[j,i]) or np.isnan(bh_err[j,i]) or bz[j,i] == 0 ):
                 continue
             if ( bh[j,i] < 100 ):
                 continue            
-            sum += abs(math.atan(bh[j,i]/abs(bz.data[j,i])))*(180./np.pi)
-            err += (1/(1+((bh[j,i]*bh[j,i])/(bz.data[j,i]*bz.data[j,i]))))*(1/(1+((bh[j,i]*bh[j,i])/(bz.data[j,i]*bz.data[j,i]))))*( ((bh_err[j,i]*bh_err[j,i])/(bz.data[j,i]*bz.data[j,i])) + ((bh[j,i]*bh[j,i]*bz_err.data[j,i]*bz_err.data[j,i])/(bz.data[j,i]*bz.data[j,i]*bz.data[j,i]*bz.data[j,i])) )
+            sum += abs(math.atan(bh[j,i]/abs(bz[j,i])))*(180./np.pi)
+            err += (1/(1+((bh[j,i]*bh[j,i])/(bz[j,i]*bz[j,i]))))*(1/(1+((bh[j,i]*bh[j,i])/(bz[j,i]*bz[j,i]))))*( ((bh_err[j,i]*bh_err[j,i])/(bz[j,i]*bz[j,i])) + ((bh[j,i]*bh[j,i]*bz_err[j,i]*bz_err[j,i])/(bz[j,i]*bz[j,i]*bz[j,i]*bz[j,i])) )
             count_mask += 1
                 
     mean_gamma     = sum/count_mask
@@ -399,7 +410,7 @@ def compute_gamma(bx, by, bz, bh, bz_err, bh_err, mask, bitmask, nx, ny, rsun_re
     
 #===========================================
 
-def compute_bt(bx, by, bz, bx_err, by_err, bz_err, mask, bitmask, nx, ny):
+def compute_bt(bx, by, bz, bx_err, by_err, bz_err, conf_disambig, bitmap, nx, ny):
 
     """function: compute_bt
 
@@ -412,18 +423,18 @@ def compute_bt(bx, by, bz, bx_err, by_err, bz_err, mask, bitmask, nx, ny):
     
     for j in range(ny):
         for i in range(nx):
-            if (np.isnan(bx.data[j,i]) or np.isnan(by.data[j,i]) or np.isnan(bz.data[j,i])):
+            if (np.isnan(bx[j,i]) or np.isnan(by[j,i]) or np.isnan(bz[j,i])):
                 bt[j,i] = np.nan
                 bt_err[j,i] = np.nan
                 continue
-            bt[j,i]     = np.sqrt(bx.data[j,i]*bx.data[j,i] + by.data[j,i]*by.data[j,i] + bz.data[j,i]*bz.data[j,i])
-            bt_err[j,i] = np.sqrt(bx.data[j,i]*bx.data[j,i]*bx_err.data[j,i]*bx_err.data[j,i] + by.data[j,i]*by.data[j,i]*by_err.data[j,i]*by_err.data[j,i] + bz.data[j,i]*bz.data[j,i]*bz_err.data[j,i]*bz_err.data[j,i])/ bt[j,i]
+            bt[j,i]     = np.sqrt(bx[j,i]*bx[j,i] + by[j,i]*by[j,i] + bz[j,i]*bz[j,i])
+            bt_err[j,i] = np.sqrt(bx[j,i]*bx[j,i]*bx_err[j,i]*bx_err[j,i] + by[j,i]*by[j,i]*by_err[j,i]*by_err[j,i] + bz[j,i]*bz[j,i]*bz_err[j,i]*bz_err[j,i])/ bt[j,i]
 
     return [bt, bt_err]
 
 #===========================================
 
-def computeBtderivative(bt, bt_err, nx, ny, mask, bitmask):
+def computeBtderivative(bt, bt_err, nx, ny, conf_disambig, bitmap):
 
     """function: computeBtderivative
 
@@ -453,7 +464,7 @@ def computeBtderivative(bt, bt_err, nx, ny, mask, bitmask):
     
     # consider the edges for the arrays that contribute to the variable "sum" in the computation below.
     # ignore the edges for the error terms as those arrays have been initialized to zero. 
-    # this is okay because the error term will ultimately not include the edge pixels as they are selected out by the mask and bitmask arrays.
+    # this is okay because the error term will ultimately not include the edge pixels as they are selected out by the conf_disambig and bitmap arrays.
 
     i=0
     for j in range(ny):
@@ -474,7 +485,7 @@ def computeBtderivative(bt, bt_err, nx, ny, mask, bitmask):
     # Calculate the sum only
     for j in range(1,ny-1):
         for i in range (1,nx-1):
-            if ( mask.data[j,i] < 70 or bitmask.data[j,i] < 30 ):
+            if ( conf_disambig[j,i] < 70 or bitmap[j,i] < 30 ):
                 continue
             if ( (derx_bt[j,i] + dery_bt[j,i]) == 0):
                 continue
@@ -505,7 +516,7 @@ def computeBtderivative(bt, bt_err, nx, ny, mask, bitmask):
 
 #===========================================
 
-def computeBhderivative(bh, bh_err, nx, ny, mask, bitmask):
+def computeBhderivative(bh, bh_err, nx, ny, conf_disambig, bitmap):
 
     """function: computeBhderivative
 
@@ -535,7 +546,7 @@ def computeBhderivative(bh, bh_err, nx, ny, mask, bitmask):
     
     # consider the edges for the arrays that contribute to the variable "sum" in the computation below.
     # ignore the edges for the error terms as those arrays have been initialized to zero. 
-    # this is okay because the error term will ultimately not include the edge pixels as they are selected out by the mask and bitmask arrays.
+    # this is okay because the error term will ultimately not include the edge pixels as they are selected out by the conf_disambig and bitmap arrays.
 
     i=0
     for j in range(ny):
@@ -556,7 +567,7 @@ def computeBhderivative(bh, bh_err, nx, ny, mask, bitmask):
     # Calculate the sum only
     for j in range(1,ny-1):
         for i in range (1,nx-1):
-            if ( mask.data[j,i] < 70 or bitmask.data[j,i] < 30 ):
+            if ( conf_disambig[j,i] < 70 or bitmap[j,i] < 30 ):
                 continue
             if ( (derx_bh[j,i] + dery_bh[j,i]) == 0):
                 continue
@@ -587,7 +598,7 @@ def computeBhderivative(bh, bh_err, nx, ny, mask, bitmask):
 
 #===========================================
 
-def computeBzderivative(bz, bz_err, nx, ny, mask, bitmask):
+def computeBzderivative(bz, bz_err, nx, ny, conf_disambig, bitmap):
 
     """function: computeBzderivative
 
@@ -606,53 +617,53 @@ def computeBzderivative(bz, bz_err, nx, ny, mask, bitmask):
     # brute force method of calculating the derivative d/dx (no consideration for edges)
     for i in range(1,nx-1):
         for j in range(0,ny):
-           derx_bz[j,i]   = (bz.data[j,i+1] - bz.data[j,i-1])*0.5
-           err_term1[j,i] = ( ((bz.data[j,i+1]-bz.data[j,i-1])*(bz.data[j,i+1]-bz.data[j,i-1])) * (bz_err.data[j,i+1]*bz_err.data[j,i+1] + bz_err.data[j,i-1]*bz_err.data[j,i-1]) )
+           derx_bz[j,i]   = (bz[j,i+1] - bz[j,i-1])*0.5
+           err_term1[j,i] = ( ((bz[j,i+1]-bz[j,i-1])*(bz[j,i+1]-bz[j,i-1])) * (bz_err[j,i+1]*bz_err[j,i+1] + bz_err[j,i-1]*bz_err[j,i-1]) )
     
     #brute force method of calculating the derivative d/dy (no consideration for edges) */
     for i in range(0,nx):
         for j in range(1,ny-1):
-           dery_bz[j,i]   = (bz.data[j+1,i] - bz.data[j-1,i])*0.5
-           err_term2[j,i] = ( ((bz.data[j+1,i]-bz.data[j-1,i])*(bz.data[j+1,i]-bz.data[j-1,i])) * (bz_err.data[j+1,i]*bz_err.data[j+1,i] + bz_err.data[j-1,i]*bz_err.data[j-1,i]) )
+           dery_bz[j,i]   = (bz[j+1,i] - bz[j-1,i])*0.5
+           err_term2[j,i] = ( ((bz[j+1,i]-bz[j-1,i])*(bz[j+1,i]-bz[j-1,i])) * (bz_err[j+1,i]*bz_err[j+1,i] + bz_err[j-1,i]*bz_err[j-1,i]) )
     
     # consider the edges for the arrays that contribute to the variable "sum" in the computation below.
     # ignore the edges for the error terms as those arrays have been initialized to zero. 
-    # this is okay because the error term will ultimately not include the edge pixels as they are selected out by the mask and bitmask arrays.
+    # this is okay because the error term will ultimately not include the edge pixels as they are selected out by the conf_disambig and bitmap arrays.
 
     i=0
     for j in range(ny):
-        derx_bz[j,i] = ( (-3*bz.data[j,i]) + (4*bz.data[j,i+1]) - (bz.data[j,i+2]) )*0.5
+        derx_bz[j,i] = ( (-3*bz[j,i]) + (4*bz[j,i+1]) - (bz[j,i+2]) )*0.5
         
     i=nx-1
     for j in range(ny):
-        derx_bz[j,i] = ( (3*bz.data[j,i]) + (-4*bz.data[j,i-1]) - (-bz.data[j,i-2]) )*0.5
+        derx_bz[j,i] = ( (3*bz[j,i]) + (-4*bz[j,i-1]) - (-bz[j,i-2]) )*0.5
     
     j=0
     for i in range(nx):
-        dery_bz[j,i] = ( (-3*bz.data[j,i]) + (4*bz.data[j+1,i]) - (bz.data[(j+2),i]) )*0.5
+        dery_bz[j,i] = ( (-3*bz[j,i]) + (4*bz[j+1,i]) - (bz[(j+2),i]) )*0.5
     
     j=ny-1
     for i in range(nx):
-        dery_bz[j,i] = ( (3*bz.data[j,i]) + (-4*bz.data[j-1,i]) - (-bz.data[j-2,i]) )*0.5
+        dery_bz[j,i] = ( (3*bz[j,i]) + (-4*bz[j-1,i]) - (-bz[j-2,i]) )*0.5
 
     # Calculate the sum only
     for j in range(1,ny-1):
         for i in range (1,nx-1):
-            if ( mask.data[j,i] < 70 or bitmask.data[j,i] < 30 ):
+            if ( conf_disambig[j,i] < 70 or bitmap[j,i] < 30 ):
                 continue
             if ( (derx_bz[j,i] + dery_bz[j,i]) == 0):
                 continue
-            if np.isnan(bz.data[j,i]):
+            if np.isnan(bz[j,i]):
                 continue
-            if np.isnan(bz.data[j+1,i]):
+            if np.isnan(bz[j+1,i]):
                 continue
-            if np.isnan(bz.data[j-1,i]):
+            if np.isnan(bz[j-1,i]):
                 continue
-            if np.isnan(bz.data[j,i-1]):
+            if np.isnan(bz[j,i-1]):
                 continue
-            if np.isnan(bz.data[j,i+1]):
+            if np.isnan(bz[j,i+1]):
                 continue
-            if np.isnan(bz_err.data[j,i]):
+            if np.isnan(bz_err[j,i]):
                 continue
             if np.isnan(derx_bz[j,i]):
                 continue
@@ -669,7 +680,7 @@ def computeBzderivative(bz, bz_err, nx, ny, mask, bitmask):
 
 #===========================================
 
-def computeJz(bx, by, bx_err, by_err, mask, bitmask, nx, ny):
+def computeJz(bx, by, bx_err, by_err, conf_disambig, bitmap, nx, ny):
 
     """function: computeJz
 
@@ -710,34 +721,34 @@ def computeJz(bx, by, bx_err, by_err, mask, bitmask, nx, ny):
     # brute force method of calculating the derivative d/dx (no consideration for edges)
     for i in range(1,nx-1):
         for j in range(0,ny):
-           derx[j,i]      = (by.data[j,i+1] - by.data[j,i-1])*0.5
-           err_term1[j,i] = ((by_err.data[j,i+1]*by_err.data[j,i+1]) + (by_err.data[j,i-1]*by_err.data[j,i-1]))
+           derx[j,i]      = (by[j,i+1] - by[j,i-1])*0.5
+           err_term1[j,i] = ((by_err[j,i+1]*by_err[j,i+1]) + (by_err[j,i-1]*by_err[j,i-1]))
     
     #brute force method of calculating the derivative d/dy (no consideration for edges) */
     for i in range(0,nx):
         for j in range(1,ny-1):
-           dery[j,i]      = (bx.data[j+1,i] - bx.data[j-1,i])*0.5
-           err_term2[j,i] = ((bx_err.data[j+1,i]*bx_err.data[j+1,i]) + (bx_err.data[j-1,i]*bx_err.data[j-1,i]))
+           dery[j,i]      = (bx[j+1,i] - bx[j-1,i])*0.5
+           err_term2[j,i] = ((bx_err[j+1,i]*bx_err[j+1,i]) + (bx_err[j-1,i]*bx_err[j-1,i]))
 
     # consider the edges for the arrays that contribute to the variable "sum" in the computation below.
     # ignore the edges for the error terms as those arrays have been initialized to zero. 
-    # this is okay because the error term will ultimately not include the edge pixels as they are selected out by the mask and bitmask arrays.
+    # this is okay because the error term will ultimately not include the edge pixels as they are selected out by the conf_disambig and bitmap arrays.
 
     i=0
     for j in range(ny):
-        derx[j,i] = ( (-3*by.data[j,i]) + (4*by.data[j,i+1]) - (by.data[j,i+2]) )*0.5
+        derx[j,i] = ( (-3*by[j,i]) + (4*by[j,i+1]) - (by[j,i+2]) )*0.5
         
     i=nx-1
     for j in range(ny):
-        derx[j,i] = ( (3*by.data[j,i]) + (-4*by.data[j,i-1]) - (-by.data[j,i-2]) )*0.5
+        derx[j,i] = ( (3*by[j,i]) + (-4*by[j,i-1]) - (-by[j,i-2]) )*0.5
     
     j=0
     for i in range(nx):
-        dery[j,i] = ( (-3*bx.data[j,i]) + (4*bx.data[j+1,i]) - (bx.data[(j+2),i]) )*0.5
+        dery[j,i] = ( (-3*bx[j,i]) + (4*bx[j+1,i]) - (bx[(j+2),i]) )*0.5
     
     j=ny-1
     for i in range(nx):
-        dery[j,i] = ( (3*bx.data[j,i]) + (-4*bx.data[j-1,i]) - (-bx.data[j-2,i]) )*0.5
+        dery[j,i] = ( (3*bx[j,i]) + (-4*bx[j-1,i]) - (-bx[j-2,i]) )*0.5
 
     # Calculate the sum only
     for j in range(1,ny-1):
@@ -749,7 +760,7 @@ def computeJz(bx, by, bx_err, by_err, mask, bitmask, nx, ny):
 
 #===========================================
 
-def computeJzmoments(jz, jz_err, derx, dery, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, munaught):
+def computeJzmoments(jz, jz_err, derx, dery, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, munaught):
 
     """function: computeJzmoments
 
@@ -766,7 +777,7 @@ def computeJzmoments(jz, jz_err, derx, dery, mask, bitmask, nx, ny, rsun_ref, rs
     # Calculate the sum only
     for j in range(ny):
         for i in range(nx):
-            if ( mask.data[j,i] < 70 or bitmask.data[j,i] < 30 ):
+            if ( conf_disambig[j,i] < 70 or bitmap[j,i] < 30 ):
                 continue
             if np.isnan(jz[j,i]):
                 continue
@@ -789,7 +800,7 @@ def computeJzmoments(jz, jz_err, derx, dery, mask, bitmask, nx, ny, rsun_ref, rs
 
 #===========================================
 
-def computeAlpha(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec):
+def computeAlpha(jz, jz_err, bz, bz_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec):
 
     """function: computeAlpha
 
@@ -817,32 +828,32 @@ def computeAlpha(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_o
 
     for j in range(ny):
         for i in range(nx):
-            if ( mask.data[j,i] < 70 or bitmask.data[j,i] < 30 ):
+            if ( conf_disambig[j,i] < 70 or bitmap[j,i] < 30 ):
                 continue
             if np.isnan(jz[j,i]):
                 continue
-            if np.isnan(bz.data[j,i]):
+            if np.isnan(bz[j,i]):
                 continue
             if (jz[j,i] == 0):
                 continue        
-            if (bz.data[j,i] == 0):
+            if (bz[j,i] == 0):
                 continue        
-            A += jz[j,i]*bz.data[j,i]
-            B += bz.data[j,i]*bz.data[j,i]
+            A += jz[j,i]*bz[j,i]
+            B += bz[j,i]*bz[j,i]
  
     for j in range(ny):
         for i in range(nx):
-            if ( mask.data[j,i] < 70 or bitmask.data[j,i] < 30 ):
+            if ( conf_disambig[j,i] < 70 or bitmap[j,i] < 30 ):
                 continue
             if np.isnan(jz[j,i]):
                 continue
-            if np.isnan(bz.data[j,i]):
+            if np.isnan(bz[j,i]):
                 continue
             if (jz[j,i] == 0):
                 continue        
-            if (bz.data[j,i] == 0):
+            if (bz[j,i] == 0):
                 continue        
-            total += bz.data[j,i]*bz.data[j,i]*jz_err[j,i]*jz_err[j,i] + (jz[j,i]-2*bz.data[j,i]*A/B)*(jz[j,i]-2*bz.data[j,i]*A/B)*bz_err.data[j,i]*bz_err.data[j,i]
+            total += bz[j,i]*bz[j,i]*jz_err[j,i]*jz_err[j,i] + (jz[j,i]-2*bz[j,i]*A/B)*(jz[j,i]-2*bz[j,i]*A/B)*bz_err[j,i]*bz_err[j,i]
 
     #Determine the absolute value of alpha. The units for alpha are 1/Mm
     alpha_total         = ((A/B)*C)
@@ -853,7 +864,7 @@ def computeAlpha(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_o
    
 #===========================================
 
-def computeHelicity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec):
+def computeHelicity(jz, jz_err, bz, bz_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec):
 
     """function: computeHelicity
 
@@ -873,23 +884,23 @@ def computeHelicity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsu
 
     for j in range(ny):
         for i in range (nx):
-            if ( mask.data[j,i] < 70 or bitmask.data[j,i] < 30 ):
+            if ( conf_disambig[j,i] < 70 or bitmap[j,i] < 30 ):
                 continue
             if np.isnan(jz[j,i]):
                 continue
-            if np.isnan(bz.data[j,i]):
+            if np.isnan(bz[j,i]):
                 continue
             if (jz[j,i] == 0):
                 continue        
-            if (bz.data[j,i] == 0):
+            if (bz[j,i] == 0):
                 continue        
             if np.isnan(jz_err[j,i]):
                 continue
-            if np.isnan(bz_err.data[j,i]):
+            if np.isnan(bz_err[j,i]):
                 continue
-            sum        += (jz[j,i]*bz.data[j,i])*(1/cdelt1_arcsec)*(rsun_obs/rsun_ref)    #contributes to MEANJZH and ABSNJZH
-            sum2       += abs(jz[j,i]*bz.data[j,i])*(1/cdelt1_arcsec)*(rsun_obs/rsun_ref) # contributes to TOTUSJH
-            err        += (jz_err[j,i]*jz_err[j,i]*bz.data[j,i]*bz.data[j,i]) + (bz_err.data[j,i]*bz_err.data[j,i]*jz[j,i]*jz[j,i])
+            sum        += (jz[j,i]*bz[j,i])*(1/cdelt1_arcsec)*(rsun_obs/rsun_ref)    #contributes to MEANJZH and ABSNJZH
+            sum2       += abs(jz[j,i]*bz[j,i])*(1/cdelt1_arcsec)*(rsun_obs/rsun_ref) # contributes to TOTUSJH
+            err        += (jz_err[j,i]*jz_err[j,i]*bz[j,i]*bz[j,i]) + (bz_err[j,i]*bz_err[j,i]*jz[j,i]*jz[j,i])
             count_mask += 1
 
     mean_ih          = sum/count_mask                                                               # Units are G^2 / m ; keyword is MEANJZH
@@ -903,7 +914,7 @@ def computeHelicity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsu
 
 #===========================================
 
-def computeSumAbsPerPolarity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, munaught):
+def computeSumAbsPerPolarity(jz, jz_err, bz, bz_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, munaught):
 
     """function: computeSumAbsPerPolarity
 
@@ -925,15 +936,15 @@ def computeSumAbsPerPolarity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun
 
     for j in range(ny):
         for i in range (nx):
-            if ( mask.data[j,i] < 70 or bitmask.data[j,i] < 30 ):
+            if ( conf_disambig[j,i] < 70 or bitmap[j,i] < 30 ):
                 continue
             if np.isnan(jz[j,i]):
                 continue
-            if np.isnan(bz.data[j,i]):
+            if np.isnan(bz[j,i]):
                 continue
-            if (bz.data[j,i] > 0):
+            if (bz[j,i] > 0):
                 sum1 += ( jz[j,i])*(1/cdelt1_arcsec)*(0.00010)*(1/munaught)*(rsun_ref/rsun_obs)
-            if (bz.data[j,i] <= 0):
+            if (bz[j,i] <= 0):
                 sum2 += ( jz[j,i])*(1/cdelt1_arcsec)*(0.00010)*(1/munaught)*(rsun_ref/rsun_obs)
             err += (jz_err[j,i]*jz_err[j,i]);
             count_mask += 1
@@ -945,7 +956,7 @@ def computeSumAbsPerPolarity(jz, jz_err, bz, bz_err, mask, bitmask, nx, ny, rsun
 
 #===========================================
 
-def computeFreeEnergy(bx_err, by_err, bx, by, bpx, bpy, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, mask, bitmask):
+def computeFreeEnergy(bx_err, by_err, bx, by, bpx, bpy, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, conf_disambig, bitmap):
     """
     function: computeFreeEnergy
 
@@ -967,15 +978,15 @@ def computeFreeEnergy(bx_err, by_err, bx, by, bpx, bpy, nx, ny, rsun_ref, rsun_o
 
     for j in range(ny):
         for i in range (nx):
-            if ( mask.data[j,i] < 70 or bitmask.data[j,i] < 30 ):
+            if ( conf_disambig[j,i] < 70 or bitmap[j,i] < 30 ):
                 continue
-            if np.isnan(bx.data[j,i]):
+            if np.isnan(bx[j,i]):
                 continue
-            if np.isnan(by.data[j,i]):
+            if np.isnan(by[j,i]):
                 continue
-            sum  += ( ((bx.data[j,i] - bpx[j,i])*(bx.data[j,i] - bpx[j,i])) + ((by.data[j,i] - bpy[j,i])*(by.data[j,i] - bpy[j,i])) )*(cdelt1_arcsec*cdelt1_arcsec*(rsun_ref/rsun_obs)*(rsun_ref/rsun_obs)*100.0*100.0)
-            sum1 += (  ((bx.data[j,i] - bpx[j,i])*(bx.data[j,i] - bpx[j,i])) + ((by.data[j,i] - bpy[j,i])*(by.data[j,i] - bpy[j,i])) )
-            err  += 4.0*(bx.data[j,i] - bpx[j,i])*(bx.data[j,i] - bpx[j,i])*(bx_err.data[j,i]*bx_err.data[j,i]) + 4.0*(by.data[j,i] - bpy[j,i])*(by.data[j,i] - bpy[j,i])*(by_err.data[j,i]*by_err.data[j,i])
+            sum  += ( ((bx[j,i] - bpx[j,i])*(bx[j,i] - bpx[j,i])) + ((by[j,i] - bpy[j,i])*(by[j,i] - bpy[j,i])) )*(cdelt1_arcsec*cdelt1_arcsec*(rsun_ref/rsun_obs)*(rsun_ref/rsun_obs)*100.0*100.0)
+            sum1 += (  ((bx[j,i] - bpx[j,i])*(bx[j,i] - bpx[j,i])) + ((by[j,i] - bpy[j,i])*(by[j,i] - bpy[j,i])) )
+            err  += 4.0*(bx[j,i] - bpx[j,i])*(bx[j,i] - bpx[j,i])*(bx_err[j,i]*bx_err[j,i]) + 4.0*(by[j,i] - bpy[j,i])*(by[j,i] - bpy[j,i])*(by_err[j,i]*by_err[j,i])
             count_mask += 1
 
     # Units of meanpotptr are ergs per centimeter
@@ -990,7 +1001,7 @@ def computeFreeEnergy(bx_err, by_err, bx, by, bpx, bpy, nx, ny, rsun_ref, rsun_o
 
 #===========================================
 
-def computeShearAngle(bx_err, by_err, bz_err, bx, by, bz, bpx, bpy, nx, ny, mask, bitmask):
+def computeShearAngle(bx_err, by_err, bz_err, bx, by, bz, bpx, bpy, nx, ny, conf_disambig, bitmap):
     """
     function: computeShearAngle
 
@@ -1016,40 +1027,40 @@ def computeShearAngle(bx_err, by_err, bz_err, bx, by, bz, bpx, bpy, nx, ny, mask
  
     for j in range(ny):
         for i in range (nx):
-            if ( mask.data[j,i] < 70 or bitmask.data[j,i] < 30 ):
+            if ( conf_disambig[j,i] < 70 or bitmap[j,i] < 30 ):
                 continue
-            if np.isnan(bx.data[j,i]):
+            if np.isnan(bx[j,i]):
                 continue
-            if np.isnan(by.data[j,i]):
+            if np.isnan(by[j,i]):
                 continue
-            if np.isnan(bz.data[j,i]):
+            if np.isnan(bz[j,i]):
                 continue
             if np.isnan(bpx[j,i]):
                 continue
             if np.isnan(bpy[j,i]):
                 continue
-            if np.isnan(bx_err.data[j,i]):
+            if np.isnan(bx_err[j,i]):
                 continue
-            if np.isnan(by_err.data[j,i]):
+            if np.isnan(by_err[j,i]):
                 continue
-            if np.isnan(bz_err.data[j,i]):
+            if np.isnan(bz_err[j,i]):
                 continue
             # for the values
-            dotproduct            = (bpx[j,i])*(bx.data[j,i]) + (bpy[j,i])*(by.data[j,i]) + (bz.data[j,i])*(bz.data[j,i])
-            magnitude_potential   = np.sqrt( (bpx[j,i]*bpx[j,i]) + (bpy[j,i]*bpy[j,i]) + (bz.data[j,i]*bz.data[j,i]))
-            magnitude_vector      = np.sqrt( (bx.data[j,i]*bx.data[j,i])   + (by.data[j,i]*by.data[j,i])   + (bz.data[j,i]*bz.data[j,i]) )
+            dotproduct            = (bpx[j,i])*(bx[j,i]) + (bpy[j,i])*(by[j,i]) + (bz[j,i])*(bz[j,i])
+            magnitude_potential   = np.sqrt( (bpx[j,i]*bpx[j,i]) + (bpy[j,i]*bpy[j,i]) + (bz[j,i]*bz[j,i]))
+            magnitude_vector      = np.sqrt( (bx[j,i]*bx[j,i])   + (by[j,i]*by[j,i])   + (bz[j,i]*bz[j,i]) )
             shear_angle           = math.acos(dotproduct/(magnitude_potential*magnitude_vector))*(180./np.pi)
             sumsum                += shear_angle
             count                 += 1
             # for the error analysis
-            term1 = bx.data[j,i]*by.data[j,i]*bpy[j,i] - by.data[j,i]*by.data[j,i]*bpx[j,i] + bz.data[j,i]*bx.data[j,i]*bz.data[j,i] - bz.data[j,i]*bz.data[j,i]*bpx[j,i]
-            term2 = bx.data[j,i]*bx.data[j,i]*bpy[j,i] - bx.data[j,i]*by.data[j,i]*bpx[j,i] + bx.data[j,i]*bz.data[j,i]*bpy[j,i] - bz.data[j,i]*by.data[j,i]*bz.data[j,i]
-            term3 = bx.data[j,i]*bx.data[j,i]*bz.data[j,i] - bx.data[j,i]*bz.data[j,i]*bpx[j,i] + by.data[j,i]*by.data[j,i]*bz.data[j,i] - by.data[j,i]*bz.data[j,i]*bpy[j,i]
-            part1 = bx.data[j,i]*bx.data[j,i] + by.data[j,i]*by.data[j,i] + bz.data[j,i]*bz.data[j,i]
-            part2 = bpx[j,i]*bpx[j,i] + bpy[j,i]*bpy[j,i] + bz.data[j,i]*bz.data[j,i]
-            part3 = bx.data[j,i]*bpx[j,i] + by.data[j,i]*bpy[j,i] + bz.data[j,i]*bz.data[j,i]
+            term1 = bx[j,i]*by[j,i]*bpy[j,i] - by[j,i]*by[j,i]*bpx[j,i] + bz[j,i]*bx[j,i]*bz[j,i] - bz[j,i]*bz[j,i]*bpx[j,i]
+            term2 = bx[j,i]*bx[j,i]*bpy[j,i] - bx[j,i]*by[j,i]*bpx[j,i] + bx[j,i]*bz[j,i]*bpy[j,i] - bz[j,i]*by[j,i]*bz[j,i]
+            term3 = bx[j,i]*bx[j,i]*bz[j,i] - bx[j,i]*bz[j,i]*bpx[j,i] + by[j,i]*by[j,i]*bz[j,i] - by[j,i]*bz[j,i]*bpy[j,i]
+            part1 = bx[j,i]*bx[j,i] + by[j,i]*by[j,i] + bz[j,i]*bz[j,i]
+            part2 = bpx[j,i]*bpx[j,i] + bpy[j,i]*bpy[j,i] + bz[j,i]*bz[j,i]
+            part3 = bx[j,i]*bpx[j,i] + by[j,i]*bpy[j,i] + bz[j,i]*bz[j,i]
             denominator = part1*part1*part1*part2*(1.0-((part3*part3)/(part1*part2)))
-            err   = (term1*term1*bx_err.data[j,i]*bx_err.data[j,i])/(denominator) + (term1*term1*bx_err.data[j,i]*bx_err.data[j,i])/(denominator) + (term1*term1*bx_err.data[j,i]*bx_err.data[j,i])/(denominator) 
+            err   = (term1*term1*bx_err[j,i]*bx_err[j,i])/(denominator) + (term1*term1*bx_err[j,i]*bx_err[j,i])/(denominator) + (term1*term1*bx_err[j,i]*bx_err[j,i])/(denominator) 
             if (shear_angle > 45):
                 count_mask += 1
 
@@ -1090,7 +1101,7 @@ def computeR(los, nx, ny, cdelt1_arcsec):
         yvalues = yvalues[:int(len(xvalues))]
     
     interp_coordinates = (xvalues,yvalues)    
-    rim = scipy.ndimage.interpolation.map_coordinates(los.data,interp_coordinates,mode='nearest')
+    rim = scipy.ndimage.interpolation.map_coordinates(los,interp_coordinates,mode='nearest')
 
     # =============== [STEP 2] =============== 
     # identify positive and negative pixels greater than +/- 150 gauss
@@ -1189,13 +1200,13 @@ def greenpot(bz, nx, ny):
     bxp        = np.zeros([nny,nnx])
     byp        = np.zeros([nny,nnx])
 
-    # substitute zeros for nans in bz.data
+    # substitute zeros for nans in bz
     for iny in range(nny):
         for inx in range(nnx):
-            if np.isnan(bz.data[iny,inx]):
+            if np.isnan(bz[iny,inx]):
                 bztmp[iny,inx] = 0.0
             else:
-                bztmp[iny,inx] = bz.data[iny,inx]
+                bztmp[iny,inx] = bz[iny,inx]
 
     rdd  = 0.0
     rdd1 = 0.0
@@ -1221,7 +1232,7 @@ def greenpot(bz, nx, ny):
 
     for iny in range(nny):
         for inx in range(nnx):
-            if np.isnan(bz.data[iny,inx]):
+            if np.isnan(bz[iny,inx]):
                 pfpot[iny,inx] = 0.0
             else:
                 sum = 0.0
