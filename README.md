@@ -13,7 +13,7 @@ This repository contains several codes designed to show you how to interact with
 * `movie.ipynb` generates movies of SHARP data.
 * `hedgehog.ipynb` provides a way to visualize the vector magnetic field in SHARP data.
 * `feature_extraction.ipynb` takes images from another instrument on SDO, called the Atmospheric Imaging Assembly (AIA), to determine which AIA pixels fall within the SHARP bounding boxes; this code also contains examples of how to automatically extract features from AIA data.
-* `calculate_swx_fits.py` calculates spaceweather keywords from vector magnetic field data, assuming fully-assembled FITS files as input data. `calculate_swx_workflow.ipynb` calculates space weather keywords after fetching them from the JSOC database using the [`drms` package](https://joss.theoj.org/papers/10.21105/joss.01614) and using Dask to parallelize the calculations.
+* `calculate_swx_fits.py` calculates spaceweather keywords from vector magnetic field data, assuming fully-assembled FITS files as input data. `calculate_swx_workflow.ipynb` calculates space weather keywords after fetching them from the JSOC database using the [`drms` package](https://joss.theoj.org/papers/10.21105/joss.01614) and using [Dask](https://dask.org/) to parallelize the calculations.
 * `disambiguation.py` contains several functions that disambiguate the azimuthal component of the vector magnetic field data and construct the field vector in spherical coordinate components on a CCD grid. See `disambiguate_data.py` for some examples.
 
 Sample data are included in this repository under the test_fits_files directory. All SDO data are publicly available. 
