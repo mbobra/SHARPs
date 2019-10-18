@@ -136,7 +136,7 @@ def main():
         
     print('These are the keyword values:')
     # compute the total unsigned flux and associated errors
-    mean_vf, mean_vf_err, count_mask  = compute_abs_flux(bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1)
+    mean_vf, mean_vf_err, count_mask  = compute_abs_flux(bz, bz_err, mask, bitmask, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
     print('USFLUX ',mean_vf,'Mx')
     print('ERRVF', mean_vf_err,'Mx')
     print('CMASK', count_mask,'pixels')
