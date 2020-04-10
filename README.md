@@ -15,7 +15,7 @@ This repository contains several codes designed to show you how to interact with
 
 **Space-weather Keywords**
 
-* The `calculate_swx_fits.py` file contains all the functions to calculate spaceweather keywords from vector magnetic field data. 
+* The `calculate_swx_fits.py` file contains all the functions to calculate spaceweather keywords from vector magnetic field data. Sample data are included in this repository under the `test_fits_files` directory.
 
 **Coordinates**
 
@@ -32,7 +32,9 @@ This repository contains several codes designed to show you how to interact with
 
 * The `disambiguation.py` file contains several functions that disambiguate the azimuthal component of the vector magnetic field data and construct the field vector in spherical coordinate components on a CCD grid. This works on both the SHARP data and full-disk data. See `disambiguate_data.py` for some examples.
 
-Sample data are included in this repository under the `test_fits_files` directory. All SDO data are publicly available. 
+**Parallelization**
+
+* See [`sharp-features.ipynb`](https://gitlab.com/wtbarnes/aia-on-pleiades/-/blob/master/notebooks/tidy/sharp-features.ipynb) for a demonstration on how to efficiently calculate SHARP keywords using significant computational resources (in this case, the [NASA Ames Pleiades supercomputer](https://www.nas.nasa.gov/hecc/resources/pleiades.html)) and a Python package for parallelization called [Dask](https://dask.org/).
 
 ### Citation
 
