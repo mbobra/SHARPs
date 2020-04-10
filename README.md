@@ -9,14 +9,30 @@ One of the data products released by the Solar Dynamics Observatory is called [S
 
 This repository contains several codes designed to show you how to interact with and understand SHARP data (view ipython notebooks on the [ipython notebook viewer](http://nbviewer.ipython.org/)).
 
-* `plot_swx_d3.ipynb` generates interactive [d3](https://d3js.org/) plots of keywords and images, and movies using image data.
-* `movie.ipynb` generates movies of SHARP data.
-* `hedgehog.ipynb` provides a way to visualize the vector magnetic field in SHARP data.
-* `feature_extraction.ipynb` takes images from another instrument on SDO, called the Atmospheric Imaging Assembly (AIA), to determine which AIA pixels fall within the SHARP bounding boxes; this code also contains examples of how to automatically extract features from AIA data.
-* `calculate_swx_fits.py` contains all the functions to calculate spaceweather keywords from vector magnetic field data. `calculate_swx_workflow.ipynb` provides a workflow to calculate these keywords by fetching the vector magnetic field data from the JSOC database using the [`drms` package](https://joss.theoj.org/papers/10.21105/joss.01614) and using [Dask](https://dask.org/) to parallelize the calculations.
-* `disambiguation.py` contains several functions that disambiguate the azimuthal component of the vector magnetic field data and construct the field vector in spherical coordinate components on a CCD grid. See `disambiguate_data.py` for some examples.
+**Getting Started**
+    
+* The `plot_swx_d3.ipynb` notebook is a good place to get started. This notebook queries data using the SunPy affiliated package called [`drms`](https://joss.theoj.org/papers/10.21105/joss.01614), generates plots of keywords and images, and exports data in a variety of formats.
 
-Sample data are included in this repository under the test_fits_files directory. All SDO data are publicly available. 
+**Space-weather Keywords**
+
+* The `calculate_swx_fits.py` file contains all the functions to calculate spaceweather keywords from vector magnetic field data. 
+
+**Coordinates**
+
+* The `feature_extraction.ipynb` notebook identifies which pixels in an image taken by the Atmospheric Imaging Assembly (AIA) instrument on SDO fall within the SHARP bounding box by applying coordinate transformations. 
+* The `active_region_distances.ipynb` notebook calculates the distance between two SHARP regions.
+
+**Visualizations**
+
+* The `hedgehog.ipynb` notebook develops an aesthetically pleasing way to visualize a vector magnetic field using SHARP data.
+* The `movie.ipynb` notebook generates movies of SHARP data.
+* The `movie_test_image_animator.ipynb` notebook generates animations of SHARP data.
+
+**Disambiguation**
+
+* The `disambiguation.py` file contains several functions that disambiguate the azimuthal component of the vector magnetic field data and construct the field vector in spherical coordinate components on a CCD grid. This works on both the SHARP data and full-disk data. See `disambiguate_data.py` for some examples.
+
+Sample data are included in this repository under the `test_fits_files` directory. All SDO data are publicly available. 
 
 ### Citation
 
