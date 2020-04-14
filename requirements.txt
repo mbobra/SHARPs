@@ -1,3 +1,15 @@
+# Requirements to run the notebooks and functions in this repo
 drms
 sunpy
-mpld3
+astropy
+scipy
+numpy
+sys
+math
+argparse
+datetime
+json
+urllib
+matplotlib
+requests
+mpl_toolkits
