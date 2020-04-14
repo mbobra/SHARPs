@@ -11,9 +11,6 @@ Usage:     This code depends on the NumPy, SciPy, AstroPy, SunPy, and drms libra
 Examples:  See example disambiguate_data.py in the same repository.
 
 Adapted:   From Xudong Sun's IDL code to do the same thing
-
-Written:   Monica Bobra
-           June 2017
 """
 
 # import some modules
@@ -22,7 +19,6 @@ import numpy as np
 import astropy.units as u
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
-from sunpy import wcs
 import sunpy.coordinates
 from sunpy.map import Map
 from datetime import datetime as dt_obj
@@ -69,7 +65,7 @@ class Basic(object):
         c = drms.Client()
 
         try:
-            keys, segments = c.query(self.recordset, key='T_REC, CRPIX1, CRPIX2, CRVAL1, CRVAL2, CDELT1, CRLN_OBS, CRLT_OBS, CROTA2, DSUN_REF, RSUN_REF', seg='inclination, azimuth, field, disambig')
+            keys, segments = c.query(self.recordset, key=drms.const.all, seg='inclination, azimuth, field, disambig')
         except:
             print("Invalid recordset specification")
             sys.exit(1)
@@ -198,8 +194,6 @@ class CoordinateTransform(object):
         y1 = (((coord_y-self.keys.CRPIX2[0])*np.cos(self.keys.CROTA2[0]*(np.pi/180.)) + (coord_x-self.keys.CRPIX1[0])*np.sin(self.keys.CROTA2[0]*(np.pi/180.)))*self.keys.CDELT1[0]+self.keys.CRVAL2[0])
 
         # step 2: populate these values into an astropy coordinate frame
-        # inputs to SkyCoord are defined here: 
-        # https://github.com/sunpy/sunpy/blob/master/sunpy/coordinates/frames.py
 
         # the input dateobs takes a string! convert t_rec to a string of the required format
         def parse_tai_string(tstr,datetime=True):
@@ -214,7 +208,8 @@ class CoordinateTransform(object):
         out  = parse_tai_string(self.keys.T_REC[0])
         dateobs_out = out.strftime('%Y/%m/%dT%H:%M:%S')
 
-        c = SkyCoord(x1 * u.arcsec, y1 * u.arcsec, frame='helioprojective', rsun = self.keys.RSUN_REF[0] * u.meter, L0=0 * u.degree, B0=self.keys.CRLT_OBS[0] * u.degree, D0=self.keys.DSUN_REF[0] * u.meter, dateobs=dateobs_out)
+        hmimap = sunpy.map.Map(self.field[1].data, dict(self.keys.iloc[0]))
+        c = SkyCoord(x1 * u.arcsec, y1 * u.arcsec, frame='helioprojective', rsun=self.keys.RSUN_REF[0] * u.meter, observer=hmimap.observer_coordinate)
 
         # step 3: transform the skycoord frame from helioprojective cartesian to stonyhurst heliographic coordinates
         lonlat = c.transform_to('heliographic_stonyhurst')
