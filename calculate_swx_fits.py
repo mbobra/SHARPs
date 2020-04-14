@@ -58,23 +58,22 @@ Inputs:    All SDO/HMI data is stored in a pSQL database; the web interface is h
            hmi.sharp_cea_*.bitmap.fits        --> bits indicate result of automatic detection algorithm
            hmi.sharp_cea_*.magnetogram.fits   --> line-of-sight component of the magnetic field
 
-Usage:     This code depends on the numpy, scipy, and sunpy libraries.
-
-Examples:  ipython: 
+Examples:  notebook: 
            > %run calculate_swx_fits.py --file_bz=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br.fits --file_by=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt.fits --file_bx=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp.fits --file_bz_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br_err.fits --file_by_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt_err.fits --file_bx_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp_err.fits --file_conf_disambig=hmi.sharp_cea_720s.377.20110215_020000_TAI.conf_disambig.fits --file_bitmap=hmi.sharp_cea_720s.377.20110215_020000_TAI.bitmap.fits --file_los=hmi.sharp_cea_720s.377.20110215_020000_TAI.magnetogram.fits
 
-           command line:
+           terminal:
            > python calculate_swx_fits.py --help
            > python calculate_swx_fits.py --file_bz=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br.fits --file_by=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt.fits --file_bx=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp.fits --file_bz_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br_err.fits --file_by_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt_err.fits --file_bx_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp_err.fits --file_conf_disambig=hmi.sharp_cea_720s.377.20110215_020000_TAI.conf_disambig.fits --file_bitmap=hmi.sharp_cea_720s.377.20110215_020000_TAI.bitmap.fits  --file_los=hmi.sharp_cea_720s.377.20110215_020000_TAI.magnetogram.fits
 
-Written:   Monica Bobra
-           1 May 2015
-           23 October 2017 Updated to Python 3.5
-           18 October 2019 Updated cdelt1 to cdelt1_arcsec + changed header key & array handling 
 """
 
 # import some modules
-import sunpy, sunpy.map, scipy, numpy as np, sys, math, argparse, pdb
+import sunpy.map
+import scipy.ndimage
+import numpy as np
+import sys
+import math
+import argparse
 
 # define some constants
 radsindeg = np.pi/180.
@@ -278,20 +277,20 @@ def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, f
     except:
         print("Could not open the LoS fits file")
         sys.exit(1)
-        
-    # get metadata
-    header = bz.meta
     
     # get array data
     bz                = bz_map.data
     by                = by_map.data
-    bx_map            = bx_map.data
-    bz_err_map        = bz_err_map.data
-    by_err_map        = by_err_map.data
-    bx_err_map        = bx_err_map.data
-    conf_disambig_map = conf_disambig_map.data
-    bitmap_map        = bitmap_map.data
-    los_map           = los_map.data
+    bx                = bx_map.data
+    bz_err            = bz_err_map.data
+    by_err            = by_err_map.data
+    bx_err            = bx_err_map.data
+    conf_disambig     = conf_disambig_map.data
+    bitmap            = bitmap_map.data
+    los               = los_map.data
+
+    # get metadata
+    header = bz_map.meta
     
     # get fits header key information
     rsun_ref = header['rsun_ref']
