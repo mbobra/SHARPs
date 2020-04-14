@@ -26,7 +26,6 @@ This repository contains several codes designed to show you how to interact with
 
 * The `hedgehog.ipynb` notebook develops an aesthetically pleasing way to visualize a vector magnetic field using SHARP data.
 * The `movie.ipynb` notebook generates movies of SHARP data.
-* The `movie_test_image_animator.ipynb` notebook generates animations of SHARP data.
 
 **Disambiguation**
 
