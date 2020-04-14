@@ -7,7 +7,7 @@ One of the data products released by the Solar Dynamics Observatory is called [S
 
 ### Contents
 
-This repository contains several codes designed to show you how to interact with and understand SHARP data (view ipython notebooks on the [ipython notebook viewer](http://nbviewer.ipython.org/)).
+This repository contains several notebooks and functions designed to interact with and understand SHARP data.
 
 **Getting Started**
     
