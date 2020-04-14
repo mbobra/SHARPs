@@ -7,7 +7,7 @@ One of the data products released by the Solar Dynamics Observatory is called [S
 
 ### Contents
 
-This repository contains several notebooks and functions designed to interact with and understand SHARP data.
+This repository contains several notebooks and functions designed to interact with and understand SHARP data. The `requirements.txt` file lists all the packages necessary to run the notebooks and functions in this repository.
 
 **Getting Started**
     
