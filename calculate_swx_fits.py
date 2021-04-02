@@ -34,6 +34,9 @@ Purpose:   To calculate the following spaceweather parameters and their errors u
            ERRMSHA Error in the mean shear angle
            SHRGT45 Area with shear angle greater than 45 degrees (as a percent of total area)
            R_VALUE Flux along gradient-weighted neutral-line length in Maxwells
+           MEANGBZ (LOS version) Mean derivative of the line-of-sight field (using bitmap values > 30)
+           USFLUX (LOS version) Total unsigned flux in Maxwells (using bitmap values > 30)
+           CMASK (LOS version) Number of pixels used in the USFLUX calculation (LOS version)
 
            Derivations of the analytical functions for the error in each parameter can be found here:
            http://jsoc.stanford.edu/doc/data/hmi/sharp/error_analysis.pdf
@@ -63,7 +66,7 @@ Examples:  notebook:
 
            terminal:
            > python calculate_swx_fits.py --help
-           > python calculate_swx_fits.py --file_bz=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br.fits --file_by=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt.fits --file_bx=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp.fits --file_bz_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br_err.fits --file_by_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt_err.fits --file_bx_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp_err.fits --file_conf_disambig=hmi.sharp_cea_720s.377.20110215_020000_TAI.conf_disambig.fits --file_bitmap=hmi.sharp_cea_720s.377.20110215_020000_TAI.bitmap.fits  --file_los=hmi.sharp_cea_720s.377.20110215_020000_TAI.magnetogram.fits
+           > python calculate_swx_fits.py --file_bz=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Br.fits --file_by=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt.fits --file_bx=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp.fits --file_bz_err=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Br_err.fits --file_by_err=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt_err.fits --file_bx_err=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp_err.fits --file_conf_disambig=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.conf_disambig.fits --file_bitmap=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.bitmap.fits  --file_los=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.magnetogram.fits
 
 """
 
@@ -74,6 +77,7 @@ import numpy as np
 import sys
 import math
 import argparse
+from skimage.measure import block_reduce
 
 # define some constants
 radsindeg = np.pi/180.
@@ -132,7 +136,7 @@ def main():
     # get the data
     print('Getting the data.')    
     bz, by, bx, bz_err, by_err, bx_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, los = get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, file_conf_disambig, file_bitmap, file_los)
-        
+
     print('These are the keyword values:')
     # compute the total unsigned flux and associated errors
     mean_vf, mean_vf_err, count_mask  = compute_abs_flux(bz, bz_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
@@ -159,12 +163,12 @@ def main():
     print('ERRBT ',mean_derivative_bt_err,'G * Mm^(-1)')
 
     mean_derivative_bh, mean_derivative_bh_err = computeBhderivative(bh, bh_err, nx, ny, conf_disambig, bitmap)
-    print('MEANGBH ',mean_derivative_bt,'G * Mm^(-1)')
-    print('ERRBH ',mean_derivative_bt_err,'G * Mm^(-1)')
+    print('MEANGBH ',mean_derivative_bh,'G * Mm^(-1)')
+    print('ERRBH ',mean_derivative_bh_err,'G * Mm^(-1)')
     
     mean_derivative_bz, mean_derivative_bz_err = computeBzderivative(bz, bz_err, nx, ny, conf_disambig, bitmap)
-    print('MEANGBZ ',mean_derivative_bt,'G * Mm^(-1)')
-    print('ERRBZ ',mean_derivative_bt_err,'G * Mm^(-1)')
+    print('MEANGBZ ',mean_derivative_bz,'G * Mm^(-1)')
+    print('ERRBZ ',mean_derivative_bz_err,'G * Mm^(-1)')
 
     # compute the vertical current and associated errors
     current                =  computeJz(bx, by, bx_err, by_err, conf_disambig, bitmap, nx, ny)
@@ -216,6 +220,18 @@ def main():
     # compute the gradient-weighted neutral line length
     Rparam = computeR(los, nx, ny, cdelt1_arcsec)
     print('R_VALUE ', Rparam[0],'Mx')
+
+    print('Here are some extra keyword values that are not in the hmi.sharp*_720s data series:')
+    mean_derivative_blos = computeLOSderivative(los, nx, ny, bitmap)
+    print('MEANGBZ (LOS version)', mean_derivative_blos[0],'G * Mm^(-1)')
+
+    # compute the total unsigned flux and associated errors
+    mean_vf, count_mask  = compute_abs_flux_los(los, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
+    print('USFLUX (LOS version) ',mean_vf,'Mx')
+    print('CMASK (LOS version)', count_mask,'pixels')
+
+    print('Note that the calculation for R_VALUE uses a slightly different method than applied for the hmi.sharp*_720s series. The results, however, should be identical or within a log(R) value of 0.1. ')
+    print('All the other keyword calculations use an identical method, and the results are identical. ')
 
 def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, file_conf_disambig, file_bitmap, file_los):
 
@@ -342,7 +358,7 @@ def compute_abs_flux(bz, bz_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_o
             if np.isnan(bz[j,i]):
                 continue
             sum += abs(bz[j,i])
-            err += bz_err[j,i]*bz_err[j,i];
+            err += bz_err[j,i]*bz_err[j,i]
             count_mask += 1
 
     mean_vf     = sum*cdelt1_arcsec*cdelt1_arcsec*(rsun_ref/rsun_obs)*(rsun_ref/rsun_obs)*100.0*100.0
@@ -706,10 +722,6 @@ def computeJz(bx, by, bx_err, by_err, conf_disambig, bitmap, nx, ny):
     = (Gauss/pix)(0.00010)(1/MUNAUGHT)(CDELT1)(RSUN_REF/RSUN_OBS)
     """
 
-    count_mask = 0
-    sum        = 0.0
-    err        = 0.0
-
     derx      = np.zeros([ny,nx])
     dery      = np.zeros([ny,nx])
     err_term1 = np.zeros([ny,nx])
@@ -945,7 +957,7 @@ def computeSumAbsPerPolarity(jz, jz_err, bz, bz_err, conf_disambig, bitmap, nx, 
                 sum1 += ( jz[j,i])*(1/cdelt1_arcsec)*(0.00010)*(1/munaught)*(rsun_ref/rsun_obs)
             if (bz[j,i] <= 0):
                 sum2 += ( jz[j,i])*(1/cdelt1_arcsec)*(0.00010)*(1/munaught)*(rsun_ref/rsun_obs)
-            err += (jz_err[j,i]*jz_err[j,i]);
+            err += (jz_err[j,i]*jz_err[j,i])
             count_mask += 1
 
     totaljz     = abs(sum1) + abs(sum2)
@@ -1016,8 +1028,6 @@ def computeShearAngle(bx_err, by_err, bz_err, bx, by, bz, bpx, bpy, nx, ny, conf
     shear_angle         = 0.0
     denominator         = 0.0
     term1               = 0.0
-    term2               = 0.0
-    term3               = 0.0
     sumsum              = 0.0
     err                 = 0.0
     part1               = 0.0
@@ -1053,8 +1063,8 @@ def computeShearAngle(bx_err, by_err, bz_err, bx, by, bz, bpx, bpy, nx, ny, conf
             count                 += 1
             # for the error analysis
             term1 = bx[j,i]*by[j,i]*bpy[j,i] - by[j,i]*by[j,i]*bpx[j,i] + bz[j,i]*bx[j,i]*bz[j,i] - bz[j,i]*bz[j,i]*bpx[j,i]
-            term2 = bx[j,i]*bx[j,i]*bpy[j,i] - bx[j,i]*by[j,i]*bpx[j,i] + bx[j,i]*bz[j,i]*bpy[j,i] - bz[j,i]*by[j,i]*bz[j,i]
-            term3 = bx[j,i]*bx[j,i]*bz[j,i] - bx[j,i]*bz[j,i]*bpx[j,i] + by[j,i]*by[j,i]*bz[j,i] - by[j,i]*bz[j,i]*bpy[j,i]
+            #term2 = bx[j,i]*bx[j,i]*bpy[j,i] - bx[j,i]*by[j,i]*bpx[j,i] + bx[j,i]*bz[j,i]*bpy[j,i] - bz[j,i]*by[j,i]*bz[j,i]
+            #term3 = bx[j,i]*bx[j,i]*bz[j,i] - bx[j,i]*bz[j,i]*bpx[j,i] + by[j,i]*by[j,i]*bz[j,i] - by[j,i]*bz[j,i]*bpy[j,i]
             part1 = bx[j,i]*bx[j,i] + by[j,i]*by[j,i] + bz[j,i]*bz[j,i]
             part2 = bpx[j,i]*bpx[j,i] + bpy[j,i]*bpy[j,i] + bz[j,i]*bz[j,i]
             part3 = bx[j,i]*bpx[j,i] + by[j,i]*bpy[j,i] + bz[j,i]*bz[j,i]
@@ -1082,25 +1092,12 @@ def computeR(los, nx, ny, cdelt1_arcsec):
     """
 
     sum   = 0.0
-    err   = 0.0
     sigma = 10.0/2.3548
     scale = int(round(2.0/cdelt1_arcsec))
 
     # =============== [STEP 1] =============== 
-    # bin the line-of-sight magnetogram down by a factor of scale using nearest-neighbor interpolation
-    xvalues            = [range(0,nx,scale)]*int(round(ny/scale))
-    # ideally the expression below should be (round(nx/scale)) for (len(xvalues[0])), but sometimes
-    # this means that len(yvalues[0]) > or < len(xvalues[0]). thus it is better this way:
-    yvalues            = [[i]*int(len(xvalues[0])) for i in range(0,ny,scale)]
-    
-    # add some conditions to make sure xvalues and yvalues are of the same dimension
-    if len(xvalues) > len(yvalues):
-        xvalues = xvalues[:int(len(yvalues))]
-    if len(yvalues) > len(xvalues):
-        yvalues = yvalues[:int(len(xvalues))]
-    
-    interp_coordinates = (xvalues,yvalues)    
-    rim = scipy.ndimage.interpolation.map_coordinates(los,interp_coordinates,mode='nearest')
+    # bin the line-of-sight magnetogram down by a factor of scale
+    rim = block_reduce(los, block_size=(scale,scale), func=np.mean)
 
     # =============== [STEP 2] =============== 
     # identify positive and negative pixels greater than +/- 150 gauss
@@ -1134,8 +1131,8 @@ def computeR(los, nx, ny, cdelt1_arcsec):
         for i in range(midpoint_nx1,midpoint_nx1+3):
             boxcar_kernel[j,i]=0.1111
 
-    p1p = scipy.ndimage.filters.convolve(p1p0,boxcar_kernel)
-    p1n = scipy.ndimage.filters.convolve(p1n0,boxcar_kernel)
+    p1p = scipy.ndimage.convolve(p1p0,boxcar_kernel)
+    p1n = scipy.ndimage.convolve(p1n0,boxcar_kernel)
 
     # =============== [STEP 4] =============== 
     # find the pixels for which p1p and p1n are both equal to 1. 
@@ -1154,7 +1151,7 @@ def computeR(los, nx, ny, cdelt1_arcsec):
     # to identify the region near the plarity inversion line
     # the resultant array is called pmap
 
-    pmap = scipy.ndimage.filters.gaussian_filter(p1,sigma,order=0)
+    pmap = scipy.ndimage.gaussian_filter(p1,sigma,order=0)
 
     # =============== [STEP 6] =============== 
     # the R parameter is calculated
@@ -1174,6 +1171,117 @@ def computeR(los, nx, ny, cdelt1_arcsec):
 
     return [Rparam]
     
+#===========================================
+
+def computeLOSderivative(los, nx, ny, bitmap):
+
+    """function: computeLOSderivative
+
+    This function computes the derivative of the line-of-sight field.
+    """
+
+    count_mask = 0
+    sum        = 0.0
+
+    derx_blos  = np.zeros([ny,nx])
+    dery_blos  = np.zeros([ny,nx])
+    
+    # brute force method of calculating the derivative d/dx (no consideration for edges)
+    for i in range(1,nx-1):
+        for j in range(0,ny):
+           derx_blos[j,i]   = (los[j,i+1] - los[j,i-1])*0.5
+    
+    #brute force method of calculating the derivative d/dy (no consideration for edges) */
+    for i in range(0,nx):
+        for j in range(1,ny-1):
+           dery_blos[j,i]   = (los[j+1,i] - los[j-1,i])*0.5
+    
+    # consider the edges for the arrays that contribute to the variable "sum" in the computation below.
+    # ignore the edges for the error terms as those arrays have been initialized to zero. 
+    # this is okay because the error term will ultimately not include the edge pixels as they are selected out by the conf_disambig and bitmap arrays.
+
+    i=0
+    for j in range(ny):
+        derx_blos[j,i] = ( (-3*los[j,i]) + (4*los[j,i+1]) - (los[j,i+2]) )*0.5
+        
+    i=nx-1
+    for j in range(ny):
+        derx_blos[j,i] = ( (3*los[j,i]) + (-4*los[j,i-1]) - (-los[j,i-2]) )*0.5
+    
+    j=0
+    for i in range(nx):
+        dery_blos[j,i] = ( (-3*los[j,i]) + (4*los[j+1,i]) - (los[(j+2),i]) )*0.5
+    
+    j=ny-1
+    for i in range(nx):
+        dery_blos[j,i] = ( (3*los[j,i]) + (-4*los[j-1,i]) - (-los[j-2,i]) )*0.5
+
+    # Calculate the sum only
+    for j in range(1,ny-1):
+        for i in range (1,nx-1):
+            if ( bitmap[j,i] < 30 ):
+                continue
+            if ( (derx_blos[j,i] + dery_blos[j,i]) == 0):
+                continue
+            if np.isnan(los[j,i]):
+                continue
+            if np.isnan(los[j+1,i]):
+                continue
+            if np.isnan(los[j-1,i]):
+                continue
+            if np.isnan(los[j,i-1]):
+                continue
+            if np.isnan(los[j,i+1]):
+                continue
+            if np.isnan(derx_blos[j,i]):
+                continue
+            if np.isnan(dery_blos[j,i]):
+                continue
+            sum += np.sqrt( derx_blos[j,i]*derx_blos[j,i]  + dery_blos[j,i]*dery_blos[j,i]  )
+            count_mask += 1
+
+    mean_derivative_blos     = (sum)/(count_mask)
+
+    return [mean_derivative_blos]
+
+#===========================================
+
+def compute_abs_flux_los(los, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec):
+
+    """function: compute_abs_flux_los
+
+    This function computes the total unsigned flux, on the line-of-sight field, in units of G/cm^2.
+    It also returns the number of pixels used in this calculation in the keyword CMASK.
+    
+    To compute the unsigned flux, we simply calculate
+       flux = surface integral [(vector Blos) dot (normal vector)],
+            = surface integral [(magnitude Blos)*(magnitude normal)*(cos theta)].
+
+    However, since the field is radial, we will assume cos theta = 1.
+    Therefore, the pixels only need to be corrected for the projection.
+
+    To convert G to G*cm^2, simply multiply by the number of square centimeters per pixel: 
+       (Gauss/pix^2)(CDELT1)^2(RSUN_REF/RSUN_OBS)^2(100.cm/m)^2
+       =Gauss*cm^2
+    """
+
+    count_mask = 0
+    sum        = 0.0
+    err        = 0.0
+    
+    for j in range(ny):
+        for i in range(nx):
+            if ( bitmap[j,i] < 30 ):
+                continue
+            if np.isnan(los[j,i]):
+                continue
+            sum += abs(los[j,i])
+            count_mask += 1
+
+    mean_vf     = sum*cdelt1_arcsec*cdelt1_arcsec*(rsun_ref/rsun_obs)*(rsun_ref/rsun_obs)*100.0*100.0
+ 
+    return [mean_vf, count_mask]
+       
 #===========================================
 
 def greenpot(bz, nx, ny):
