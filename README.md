@@ -1,7 +1,7 @@
 calculating-spaceweather-keywords
 =================================
 
-The Solar Dynamics Observatory (SDO) takes about a terabyte and a half of data a day, which is more data than any other satellite in NASA history. SDO data are stored in a [publicly-available, web-accessible pSQL database](http://jsoc.stanford.edu/ajax/lookdata.html) at Stanford University. These data are also accessible via a JSON API called [jsoc_info](http://jsoc.stanford.edu/jsocwiki/AjaxJsocConnect) and a python library called [drms](https://drms.readthedocs.io/en/stable/).
+The Solar Dynamics Observatory (SDO) takes about a terabyte and a half of data a day, which is more data than any other satellite in the NASA Heliophysics Division. SDO data are stored in a [publicly-available, web-accessible pSQL database](http://jsoc.stanford.edu/ajax/lookdata.html) at Stanford University. These data are also accessible via a [SunPy](https://sunpy.org/) affiliated package called [drms](https://drms.readthedocs.io/en/stable/).
 
 One of the data products released by the Solar Dynamics Observatory is called [Space-weather HMI Active Region Patches](http://link.springer.com/article/10.1007%2Fs11207-014-0529-3), or SHARPs. SHARPs include patches of vector magnetic field data taken by the Helioseismic and Magnetic Imager (HMI) instrument aboard SDO. These patches encapsulate automatically-detected active regions. SHARP data also include spaceweather keywords describing these active regions. [Bobra & Couvidat (2015)](http://arxiv.org/abs/1411.1405), [Bobra & Ilonidis (2016)](https://arxiv.org/abs/1603.03775), and [Jonas et al. (2018)](http://adsabs.harvard.edu/abs/2018SoPh..293...48J) used machine-learning algorithms to show that these spaceweather keywords are useful for predicting solar activity. 
 
@@ -11,7 +11,7 @@ This repository contains several notebooks and functions designed to interact wi
 
 **Getting Started**
     
-* The `plot_swx_d3.ipynb` notebook is a good place to get started. This notebook queries data using the SunPy affiliated package called [`drms`](https://joss.theoj.org/papers/10.21105/joss.01614), generates plots of keywords and images, and exports data in a variety of formats.
+* The `plot_swx_d3.ipynb` notebook is a good place to get started. This notebook queries data using the SunPy affiliated package called [`drms`](https://joss.theoj.org/papers/10.21105/joss.01614), generates plots of keywords and images, demonstrates how to query the SHARP data, and exports data in a variety of formats.
 
 **Space-weather Keywords**
 
