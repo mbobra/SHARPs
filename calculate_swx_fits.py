@@ -46,7 +46,7 @@ Inputs:    All SDO/HMI data is stored in a pSQL database; the web interface is h
 
            The data used for this code is available in the DRMS series hmi.sharp_cea_720s,
            which is documented extensively in Bobra et al., Solar Physics, 2014, an open-access publication:
-           http://link.springer.com/article/10.1007%2Fs11207-014-0529-3.
+           https://doi.org/10.1007/s11207-014-0529-3.
 
            We use the following segments:
            
@@ -220,15 +220,17 @@ def main():
     # compute the gradient-weighted neutral line length
     Rparam = computeR(los, nx, ny, cdelt1_arcsec)
     print('R_VALUE ', Rparam[0],'Mx')
-
-    print('Here are some extra keyword values that are not in the hmi.sharp*_720s data series:')
+    
+    # compute mean gradient of the line-of-sight field
     mean_derivative_blos = computeLOSderivative(los, nx, ny, bitmap)
-    print('MEANGBZ (LOS version)', mean_derivative_blos[0],'G * Mm^(-1)')
+    print('MEANGBL', mean_derivative_blos[0],'G * Mm^(-1)')
 
-    # compute the total unsigned flux and associated errors
+    # compute the total unsigned flux using the line of sight field
     mean_vf, count_mask  = compute_abs_flux_los(los, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
-    print('USFLUX (LOS version) ',mean_vf,'Mx')
-    print('CMASK (LOS version)', count_mask,'pixels')
+    print('USFLUXL ',mean_vf,'Mx')
+
+    # compute the number of pixels that contribute to MEANGBL and USFLUXL
+    print('CMASKL', count_mask,'pixels')
 
     print('Note that the calculation for R_VALUE uses a slightly different method than applied for the hmi.sharp*_720s series. The results, however, should be identical or within a log(R) value of 0.1. ')
     print('All the other keyword calculations use an identical method, and the results are identical. ')
@@ -1220,8 +1222,6 @@ def computeLOSderivative(los, nx, ny, bitmap):
     for j in range(1,ny-1):
         for i in range (1,nx-1):
             if ( bitmap[j,i] < 30 ):
-                continue
-            if ( (derx_blos[j,i] + dery_blos[j,i]) == 0):
                 continue
             if np.isnan(los[j,i]):
                 continue
