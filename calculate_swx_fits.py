@@ -222,7 +222,7 @@ def main():
     print('R_VALUE ', Rparam[0],'Mx')
     
     # compute mean gradient of the line-of-sight field
-    mean_derivative_blos = computeLOSderivative(los, nx, ny, bitmap)
+    mean_derivative_blos = computeLOSderivative(los, nx, ny, bitmap, rsun_ref, rsun_obs, cdelt1_arcsec)
     print('MEANGBL', mean_derivative_blos[0],'G * Mm^(-1)')
 
     # compute the total unsigned flux using the line of sight field
@@ -316,7 +316,9 @@ def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, f
     rsun_obs = header['rsun_obs']
     cdelt1   = header['cdelt1']
 
-    # convert cdelt1 from degrees to arcsec
+    # Note that the value of CDELT1 in mdi.smarp_cea_720s is in units of degrees per pixel.
+    # The following calculation converts CDELT1 into arcseconds.
+    # Therefore the variable cdelt1_arcseconds is in units of arseconds per pixel.
     cdelt1_arcsec = (math.atan((rsun_ref*cdelt1*radsindeg)/(dsun_obs)))*(1/radsindeg)*(3600.)
 
     # get dimensions
@@ -1175,15 +1177,24 @@ def computeR(los, nx, ny, cdelt1_arcsec):
     
 #===========================================
 
-def computeLOSderivative(los, nx, ny, bitmap):
+def computeLOSderivative(los, nx, ny, bitmap, rsun_ref, rsun_obs, cdelt1_arcsec):
 
     """function: computeLOSderivative
 
-    This function computes the derivative of the line-of-sight field.
+    This function computes the derivative of the line-of-sight field, or sqrt[(dB/dx)^2 + (dB/dy)^2].
+    The units of the magnetic field, or dB, are in Gauss.
+    The units of length, i.e. dx or dy, are in pixels.
+
+    Therefore, the units of dB/dx or dB/dy = (Gauss/pix)(pix/arcsec)(arsec/meter)(meter/Mm), or
+                                           = (Gauss/pix)(1/cdelt1_arcsec)(RSUN_OBS/RSUN_REF)(10^6)
+                                           = Gauss/Mm
+
+    Note that cdelt1_arcsec is defined in the get_data function above.
     """
 
     count_mask = 0
     sum        = 0.0
+    unitconstant = (1/cdelt1_arcsec)*(rsun_obs/rsun_ref)*(10e6)
 
     derx_blos  = np.zeros([ny,nx])
     dery_blos  = np.zeros([ny,nx])
@@ -1240,7 +1251,7 @@ def computeLOSderivative(los, nx, ny, bitmap):
             sum += np.sqrt( derx_blos[j,i]*derx_blos[j,i]  + dery_blos[j,i]*dery_blos[j,i]  )
             count_mask += 1
 
-    mean_derivative_blos     = (sum)/(count_mask)
+    mean_derivative_blos     = (sum*unitconstant)/(count_mask)
 
     return [mean_derivative_blos]
 
