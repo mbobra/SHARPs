@@ -15,7 +15,7 @@ This repository contains several notebooks and functions designed to interact wi
 
 **Space-weather Keywords**
 
-* The `calculate_swx_fits.py` file contains all the functions to calculate spaceweather keywords from vector magnetic field data. Sample data are included in this repository under the `test_fits_files` directory.
+* The `calculate_swx_fits.py` file contains all the functions to calculate spaceweather keywords from vector magnetic field data. Sample data are included in this repository under the `test_fits_files` directory. For an explanation of the variable `cdelt1_arcsec`, in the function `get_data()`, see `cdelt1_arcsec.pdf`.
 
 **Coordinates**
 

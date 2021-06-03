@@ -316,9 +316,10 @@ def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, f
     rsun_obs = header['rsun_obs']
     cdelt1   = header['cdelt1']
 
-    # Note that the value of CDELT1 in mdi.smarp_cea_720s is in units of degrees per pixel.
+    # Note that the value of CDELT1 in hmi.sharp_cea_720s is in units of degrees per pixel.
     # The following calculation converts CDELT1 into arcseconds.
     # Therefore the variable cdelt1_arcseconds is in units of arseconds per pixel.
+    # For an explanation of this formula, see cdelt1_arcsec.pdf in this same directory.
     cdelt1_arcsec = (math.atan((rsun_ref*cdelt1*radsindeg)/(dsun_obs)))*(1/radsindeg)*(3600.)
 
     # get dimensions
