@@ -458,7 +458,19 @@ def computeBtderivative(bt, bt_err, nx, ny, conf_disambig, bitmap):
 
     """function: computeBtderivative
 
-    This function computes the derivative of the total field.
+    This function computes the derivative of the total field, or sqrt[(dB_total/dx)^2 + (dB_total/dy)^2].
+    The native units in the series hmi.sharp_720s and hmi.sharp_cea_720s are in Gauss/pixel.
+
+    Here are the steps to convert from Gauss/pixel to Gauss/Mm:
+    The units of the magnetic field, or dB_total, are in Gauss.
+    The units of length, i.e. dx or dy, are in pixels.
+    The units of dB_total/dx or dB_total/dy = (Gauss/pix)(pix/arcsec)(arsec/meter)(meter/Mm), or
+                                            = (Gauss/pix)(1/cdelt1_arcsec)(RSUN_OBS/RSUN_REF)(1000000)
+                                            = Gauss/Mm
+    In other words, multiply MEANGBT by a factor of (1/cdelt1_arcsec)*(RSUN_OBS/RSUN_REF)*(1000000).
+    
+    Note that cdelt1_arcsec is defined in the get_data function above.
+
     """
 
     count_mask = 0
@@ -540,7 +552,19 @@ def computeBhderivative(bh, bh_err, nx, ny, conf_disambig, bitmap):
 
     """function: computeBhderivative
 
-    This function computes the derivative of the horizontal field.
+    This function computes the derivative of the horizontal field, or sqrt[(dB_h/dx)^2 + (dB_h/dy)^2].
+    The native units in the series hmi.sharp_720s and hmi.sharp_cea_720s are in Gauss/pixel.
+
+    Here are the steps to convert from Gauss/pixel to Gauss/Mm:
+    The units of the magnetic field, or dB_h, are in Gauss.
+    The units of length, i.e. dx or dy, are in pixels.
+    The units of dB_h/dx or dB_h/dy = (Gauss/pix)(pix/arcsec)(arsec/meter)(meter/Mm), or
+                                    = (Gauss/pix)(1/cdelt1_arcsec)(RSUN_OBS/RSUN_REF)(1000000)
+                                    = Gauss/Mm
+    In other words, multiply MEANGBH by a factor of (1/cdelt1_arcsec)*(RSUN_OBS/RSUN_REF)*(1000000).
+    
+    Note that cdelt1_arcsec is defined in the get_data function above.
+
     """
 
     count_mask = 0
@@ -622,7 +646,19 @@ def computeBzderivative(bz, bz_err, nx, ny, conf_disambig, bitmap):
 
     """function: computeBzderivative
 
-    This function computes the derivative of the vertical field.
+    This function computes the derivative of the vertical field, or sqrt[(dB_z/dx)^2 + (dB_z/dy)^2].
+    The native units in the series hmi.sharp_720s and hmi.sharp_cea_720s are in Gauss/pixel.
+
+    Here are the steps to convert from Gauss/pixel to Gauss/Mm:
+    The units of the magnetic field, or dB_z, are in Gauss.
+    The units of length, i.e. dx or dy, are in pixels.
+    The units of dB_z/dx or dB_z/dy = (Gauss/pix)(pix/arcsec)(arsec/meter)(meter/Mm), or
+                                    = (Gauss/pix)(1/cdelt1_arcsec)(RSUN_OBS/RSUN_REF)(1000000)
+                                    = Gauss/Mm
+    In other words, multiply MEANGBZ by a factor of (1/cdelt1_arcsec)*(RSUN_OBS/RSUN_REF)*(1000000).
+    
+    Note that cdelt1_arcsec is defined in the get_data function above.
+
     """
 
     count_mask = 0
@@ -1182,14 +1218,17 @@ def computeLOSderivative(los, nx, ny, bitmap, rsun_ref, rsun_obs, cdelt1_arcsec)
 
     """function: computeLOSderivative
 
-    This function computes the derivative of the line-of-sight field, or sqrt[(dB/dx)^2 + (dB/dy)^2].
-    The units of the magnetic field, or dB, are in Gauss.
+    This function computes the derivative of the line-of-sight field, or sqrt[(dB_los/dx)^2 + (dB_los/dy)^2].
+    The native units in the series hmi.sharp_720s and hmi.sharp_cea_720s are in Gauss/pixel.
+
+    Here are the steps to convert from Gauss/pixel to Gauss/Mm:
+    The units of the magnetic field, or dB_los, are in Gauss.
     The units of length, i.e. dx or dy, are in pixels.
-
-    Therefore, the units of dB/dx or dB/dy = (Gauss/pix)(pix/arcsec)(arsec/meter)(meter/Mm), or
-                                           = (Gauss/pix)(1/cdelt1_arcsec)(RSUN_OBS/RSUN_REF)(10^6)
-                                           = Gauss/Mm
-
+    The units of dB_los/dx or dB_los/dy = (Gauss/pix)(pix/arcsec)(arsec/meter)(meter/Mm), or
+                                        = (Gauss/pix)(1/cdelt1_arcsec)(RSUN_OBS/RSUN_REF)(1000000)
+                                        = Gauss/Mm
+    In other words, multiply MEANGBL by a factor of (1/cdelt1_arcsec)*(RSUN_OBS/RSUN_REF)*(1000000).
+    
     Note that cdelt1_arcsec is defined in the get_data function above.
     """
 
@@ -1252,7 +1291,7 @@ def computeLOSderivative(los, nx, ny, bitmap, rsun_ref, rsun_obs, cdelt1_arcsec)
             sum += np.sqrt( derx_blos[j,i]*derx_blos[j,i]  + dery_blos[j,i]*dery_blos[j,i]  )
             count_mask += 1
 
-    mean_derivative_blos     = (sum*unitconstant)/(count_mask)
+    mean_derivative_blos     = (sum)/(count_mask)
 
     return [mean_derivative_blos]
 

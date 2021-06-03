@@ -1,5 +1,5 @@
-calculating-spaceweather-keywords
-=================================
+SHARPs
+======
 
 The Solar Dynamics Observatory (SDO) takes about a terabyte and a half of data a day, which is more data than any other satellite in the NASA Heliophysics Division. SDO data are stored in a [publicly-available, web-accessible pSQL database](http://jsoc.stanford.edu/ajax/lookdata.html) at Stanford University. These data are also accessible via a [SunPy](https://sunpy.org/) affiliated package called [drms](https://drms.readthedocs.io/en/stable/).
 
