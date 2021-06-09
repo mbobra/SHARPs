@@ -1,9 +1,9 @@
 SHARPs
 ======
 
-The Solar Dynamics Observatory (SDO) takes about a terabyte and a half of data a day, which is more data than any other satellite in the NASA Heliophysics Division. SDO data are stored in a [publicly-available, web-accessible pSQL database](http://jsoc.stanford.edu/ajax/lookdata.html) at Stanford University. These data are also accessible via a [SunPy](https://sunpy.org/) affiliated package called [drms](https://drms.readthedocs.io/en/stable/).
+The Solar Dynamics Observatory (SDO) takes about a terabyte and a half of data a day, which is more data than any other satellite in the NASA Heliophysics Division. One of the data products released by the Solar Dynamics Observatory science team is called [Space-weather HMI Active Region Patches](http://link.springer.com/article/10.1007%2Fs11207-014-0529-3), or SHARPs. SHARPs include patches of vector magnetic field data taken by the Helioseismic and Magnetic Imager (HMI) instrument aboard SDO. These patches encapsulate automatically-detected active regions. SHARP data also include spaceweather keywords describing these active regions. [Bobra & Couvidat (2015)](http://arxiv.org/abs/1411.1405), [Bobra & Ilonidis (2016)](https://arxiv.org/abs/1603.03775), and [Jonas et al. (2018)](http://adsabs.harvard.edu/abs/2018SoPh..293...48J) used machine-learning algorithms to show that these spaceweather keywords are useful for predicting solar activity. 
 
-One of the data products released by the Solar Dynamics Observatory is called [Space-weather HMI Active Region Patches](http://link.springer.com/article/10.1007%2Fs11207-014-0529-3), or SHARPs. SHARPs include patches of vector magnetic field data taken by the Helioseismic and Magnetic Imager (HMI) instrument aboard SDO. These patches encapsulate automatically-detected active regions. SHARP data also include spaceweather keywords describing these active regions. [Bobra & Couvidat (2015)](http://arxiv.org/abs/1411.1405), [Bobra & Ilonidis (2016)](https://arxiv.org/abs/1603.03775), and [Jonas et al. (2018)](http://adsabs.harvard.edu/abs/2018SoPh..293...48J) used machine-learning algorithms to show that these spaceweather keywords are useful for predicting solar activity. 
+Users can access the SHARP data with a [SunPy](https://sunpy.org/) affiliated package called [drms](https://drms.readthedocs.io/en/stable/). If you use `drms` in your research, please cite [The SunPy Community et al. 2020](https://dx.doi.org/10.3847/1538-4357/ab4f7a) and [Glogowski et al. 2019](https://joss.theoj.org/papers/10.21105/joss.01614).
 
 ### Contents
 
@@ -15,7 +15,7 @@ This repository contains several notebooks and functions designed to interact wi
 
 **Space-weather Keywords**
 
-* The `calculate_swx_fits.py` file contains all the functions to calculate spaceweather keywords from vector magnetic field data. Sample data are included in this repository under the `test_fits_files` directory. For an explanation of the variable `cdelt1_arcsec`, in the function `get_data()`, see `cdelt1_arcsec.pdf`.
+* The `calculate_sharpkeys.py` file contains all the functions to calculate spaceweather keywords from vector magnetic field data. Sample data are included in this repository under the `files` directory. For an explanation of the variable `cdelt1_arcsec`, in the function `get_data()`, see `cdelt1_arcsec.pdf`. See the SHARP Issue Tracker (`SHARP_Issue_Tracker.md`) for a list of known issues with the SHARP data.
 
 **Coordinates**
 
