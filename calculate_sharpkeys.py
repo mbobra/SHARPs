@@ -38,6 +38,8 @@ Purpose:   To calculate the following spaceweather parameters and their errors u
            USFLUX (LOS version) Total unsigned flux in Maxwells (using bitmap values > 30)
            CMASK (LOS version) Number of pixels used in the USFLUX calculation (LOS version)
 
+           This code also calculates additional uncertainty estimates. 
+
            Derivations of the analytical functions for the error in each parameter can be found here:
            http://jsoc.stanford.edu/doc/data/hmi/sharp/error_analysis.pdf
 
@@ -61,12 +63,8 @@ Inputs:    All SDO/HMI data is stored in a pSQL database; the web interface is h
            hmi.sharp_cea_*.bitmap.fits        --> bits indicate result of automatic detection algorithm
            hmi.sharp_cea_*.magnetogram.fits   --> line-of-sight component of the magnetic field
 
-Examples:  notebook: 
-           > %run calculate_swx_fits.py --file_bz=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br.fits --file_by=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt.fits --file_bx=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp.fits --file_bz_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Br_err.fits --file_by_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt_err.fits --file_bx_err=hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp_err.fits --file_conf_disambig=hmi.sharp_cea_720s.377.20110215_020000_TAI.conf_disambig.fits --file_bitmap=hmi.sharp_cea_720s.377.20110215_020000_TAI.bitmap.fits --file_los=hmi.sharp_cea_720s.377.20110215_020000_TAI.magnetogram.fits
-
-           terminal:
-           > python calculate_swx_fits.py --help
-           > python calculate_swx_fits.py --file_bz=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Br.fits --file_by=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt.fits --file_bx=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp.fits --file_bz_err=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Br_err.fits --file_by_err=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt_err.fits --file_bx_err=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp_err.fits --file_conf_disambig=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.conf_disambig.fits --file_bitmap=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.bitmap.fits  --file_los=test_fits_files/hmi.sharp_cea_720s.377.20110215_020000_TAI.magnetogram.fits
+Examples:  > python calculate_sharpkeys.py --help
+           > python calculate_sharpkeys.py --file_bz=files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Br.fits --file_by=files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt.fits --file_bx=files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp.fits --file_bz_err=files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Br_err.fits --file_by_err=files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Bt_err.fits --file_bx_err=files/hmi.sharp_cea_720s.377.20110215_020000_TAI.Bp_err.fits --file_conf_disambig=files/hmi.sharp_cea_720s.377.20110215_020000_TAI.conf_disambig.fits --file_bitmap=files/hmi.sharp_cea_720s.377.20110215_020000_TAI.bitmap.fits  --file_los=files/hmi.sharp_cea_720s.377.20110215_020000_TAI.magnetogram.fits
 
 """
 
@@ -135,9 +133,9 @@ def main():
     
     # get the data
     print('Getting the data.')    
-    bz, by, bx, bz_err, by_err, bx_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, los = get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, file_conf_disambig, file_bitmap, file_los)
+    bz, by, bx, bz_err, by_err, bx_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, los, los_err = get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, file_conf_disambig, file_bitmap, file_los)
 
-    print('These are the keyword values:')
+    print('These are the active region summary parameters calculated from the vector magnetic field data:')
     # compute the total unsigned flux and associated errors
     mean_vf, mean_vf_err, count_mask  = compute_abs_flux(bz, bz_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
     print('USFLUX ',mean_vf,'Mx')
@@ -217,19 +215,22 @@ def main():
     print('ERRMSHA ',meanshear_angle_err,'degree')
     print('SHRGT45 ',area_w_shear_gt_45,'as a percentage')
 
+    print('===============================')
+    print('These are the active region summary parameters calculated from the line-of-sight magnetic field data:')
     # compute the gradient-weighted neutral line length
-    Rparam = computeR(los, nx, ny, cdelt1_arcsec)
-    print('R_VALUE ', Rparam[0],'Mx')
-    
+    Rparam, Rparam_err = computeR(los, los_err, nx, ny, cdelt1_arcsec)
+    print('R_VALUE ', Rparam,'Mx')
+    print('The error in R_VALUE is', Rparam_err)
+
     # compute mean gradient of the line-of-sight field
-    mean_derivative_blos = computeLOSderivative(los, nx, ny, bitmap, rsun_ref, rsun_obs, cdelt1_arcsec)
-    print('MEANGBL', mean_derivative_blos[0],'G * Mm^(-1)')
+    mean_derivative_blos, mean_derivative_blos_err = computeLOSderivative(los, los_err, nx, ny, bitmap, rsun_ref, rsun_obs, cdelt1_arcsec)
+    print('MEANGBL ', mean_derivative_blos,'G * Mm^(-1)')
+    print('The error in MEANGBL is', mean_derivative_blos_err)
 
     # compute the total unsigned flux using the line of sight field
-    mean_vf, count_mask  = compute_abs_flux_los(los, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
+    mean_vf, mean_vf_err, count_mask  = compute_abs_flux_los(los, los_err, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
     print('USFLUXL ',mean_vf,'Mx')
-
-    # compute the number of pixels that contribute to MEANGBL and USFLUXL
+    print('The error in USFLUXL is', mean_vf_err)
     print('CMASKL', count_mask,'pixels')
 
     print('Note that the calculation for R_VALUE uses a slightly different method than applied for the hmi.sharp*_720s series. The results, however, should be identical or within a log(R) value of 0.1. ')
@@ -325,11 +326,19 @@ def get_data(file_bz, file_by, file_bx, file_bz_err, file_by_err, file_bx_err, f
     # get dimensions
     nx     = bz.shape[1]
     ny     = bz.shape[0]
-    
+
+    # Create an error array to calculate uncertainties in the keywords dervied from 
+    # line-of-sight data. Liu et al. (2012) [DOI: 10.1007/s11207-012-9976-x] determined
+    # the median noise in the HMI full-disk magnetic field maps is 6.4 Mx cm^(−2) 
+    # (see Figure 2). We will assume this noise value is homogeneous throughout the disk to
+    # estimate the error in the keyword quantities. Here, 1 Gauss = 1 Mx cm^(−2).
+    los_err = np.ndarray(shape=(ny,nx), dtype=float)
+    los_err.fill(6.4)
+
     # flip the sign of by
     by_flipped = -1.0*(np.array(by))
 
-    return [bz, by_flipped, bx, bz_err, by_err, bx_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, los] 
+    return [bz, by_flipped, bx, bz_err, by_err, bx_err, conf_disambig, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec, los, los_err] 
 
 #===========================================
 
@@ -1125,14 +1134,22 @@ def computeShearAngle(bx_err, by_err, bz_err, bx, by, bz, bpx, bpy, nx, ny, conf
 
 #===========================================
 
-def computeR(los, nx, ny, cdelt1_arcsec):
+def computeR(los, los_err, nx, ny, cdelt1_arcsec):
     """
     function: computeR
 
-    This function computes the gradient-weighted neutral line length in Maxwells.
+    This function computes R, or the log of the gradient-weighted neutral line length. 
+    So the output is unitless.
+
+    This function also computes the error in R. The general formula for an error of a
+    function is ERR(f(x)) = d/dx f(x) * ERR(x). Thus
+                ERR(R) = d/dx (log_10 R) * ERR(x)
+                       = [1/ln(10)] * [1/x] * ERR(x)
+                       = ERR(x) / ln(10)*x
     """
 
     sum   = 0.0
+    err   = 0.0
     sigma = 10.0/2.3548
     scale = int(round(2.0/cdelt1_arcsec))
 
@@ -1204,17 +1221,20 @@ def computeR(los, nx, ny, cdelt1_arcsec):
             if np.isnan(rim[j,i]):
                 continue
             sum += pmap[j,i]*abs(rim[j,i])
+            err += pmap[j,i]*abs(los_err[j,i])
 
     if (sum < 1.0):
         Rparam = 0.0
+        Rparam_err = 0.0
     else:
         Rparam = math.log10(sum)
+        Rparam_err = err / (math.log(10) * sum) # note that math.log is a natural log by default
 
-    return [Rparam]
+    return [Rparam, Rparam_err]
     
 #===========================================
 
-def computeLOSderivative(los, nx, ny, bitmap, rsun_ref, rsun_obs, cdelt1_arcsec):
+def computeLOSderivative(los, los_err, nx, ny, bitmap, rsun_ref, rsun_obs, cdelt1_arcsec):
 
     """function: computeLOSderivative
 
@@ -1234,20 +1254,26 @@ def computeLOSderivative(los, nx, ny, bitmap, rsun_ref, rsun_obs, cdelt1_arcsec)
 
     count_mask = 0
     sum        = 0.0
+    err        = 0.0
     unitconstant = (1/cdelt1_arcsec)*(rsun_obs/rsun_ref)*(10e6)
 
     derx_blos  = np.zeros([ny,nx])
     dery_blos  = np.zeros([ny,nx])
+    err_term1  = np.zeros([ny,nx])
+    err_term2  = np.zeros([ny,nx])
     
     # brute force method of calculating the derivative d/dx (no consideration for edges)
     for i in range(1,nx-1):
         for j in range(0,ny):
-           derx_blos[j,i]   = (los[j,i+1] - los[j,i-1])*0.5
+            derx_blos[j,i]   = (los[j,i+1] - los[j,i-1])*0.5
+            err_term1[j,i] = ( ((los[j,i+1] - los[j,i-1])*(los[j,i+1]-los[j,i-1])) * (los_err[j,i+1]*los_err[j,i+1] + los_err[j,i-1]*los_err[j,i-1]) )
+
     
     #brute force method of calculating the derivative d/dy (no consideration for edges) */
     for i in range(0,nx):
         for j in range(1,ny-1):
-           dery_blos[j,i]   = (los[j+1,i] - los[j-1,i])*0.5
+            dery_blos[j,i]   = (los[j+1,i] - los[j-1,i])*0.5
+            err_term2[j,i] = ( ((los[j+1,i]-los[j-1,i])*(los[j+1,i]-los[j-1,i])) * (los_err[j+1,i]*los_err[j+1,i] + los_err[j-1,i]*los_err[j-1,i]) )
     
     # consider the edges for the arrays that contribute to the variable "sum" in the computation below.
     # ignore the edges for the error terms as those arrays have been initialized to zero. 
@@ -1289,15 +1315,31 @@ def computeLOSderivative(los, nx, ny, bitmap, rsun_ref, rsun_obs, cdelt1_arcsec)
             if np.isnan(dery_blos[j,i]):
                 continue
             sum += np.sqrt( derx_blos[j,i]*derx_blos[j,i]  + dery_blos[j,i]*dery_blos[j,i]  )
+            denominator_1 = 16.0*( derx_blos[j,i]*derx_blos[j,i] + dery_blos[j,i]*dery_blos[j,i])
+            denominator_2 = 16.0*( derx_blos[j,i]*derx_blos[j,i] + dery_blos[j,i]*dery_blos[j,i])
+            if np.isnan(denominator_1):
+                continue
+            if np.isnan(denominator_2):
+                continue
+            if denominator_1 == 0:
+                continue
+            if denominator_2 == 0:
+                continue       
+            err += (err_term2[j,i] / denominator_1) + (err_term1[j,i] / denominator_2)
             count_mask += 1
 
-    mean_derivative_blos     = (sum)/(count_mask)
+    if count_mask == 0:
+        mean_derivative_blos = 0.0
+        mean_derivative_blos_err = 0.0
+    else:
+        mean_derivative_blos = (sum)/(count_mask)
+        mean_derivative_blos_err = (np.sqrt(err))/(count_mask)
 
-    return [mean_derivative_blos]
+    return [mean_derivative_blos, mean_derivative_blos_err]
 
 #===========================================
 
-def compute_abs_flux_los(los, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec):
+def compute_abs_flux_los(los, los_err, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec):
 
     """function: compute_abs_flux_los
 
@@ -1327,11 +1369,13 @@ def compute_abs_flux_los(los, bitmap, nx, ny, rsun_ref, rsun_obs, cdelt1_arcsec)
             if np.isnan(los[j,i]):
                 continue
             sum += abs(los[j,i])
+            err += los_err[j,i]*los_err[j,i]
             count_mask += 1
 
     mean_vf     = sum*cdelt1_arcsec*cdelt1_arcsec*(rsun_ref/rsun_obs)*(rsun_ref/rsun_obs)*100.0*100.0
- 
-    return [mean_vf, count_mask]
+    mean_vf_err = (np.sqrt(err))*abs(cdelt1_arcsec*cdelt1_arcsec*(rsun_ref/rsun_obs)*(rsun_ref/rsun_obs)*100.0*100.0)
+
+    return [mean_vf, mean_vf_err, count_mask]
        
 #===========================================
 
