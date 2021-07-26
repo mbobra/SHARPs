@@ -37,7 +37,9 @@ This repository contains several notebooks and functions designed to interact wi
 
 ### Citation
 
-If you use the [Space-weather HMI Active Region Patch](http://link.springer.com/article/10.1007%2Fs11207-014-0529-3) data in your research, please consider citing our paper. Here is the bibtex entry for the paper:
+If you use the [Space-weather HMI Active Region Patch](http://link.springer.com/article/10.1007%2Fs11207-014-0529-3) data in your research, please consider citing our paper and this software repository. 
+
+Here is the bibtex entry for the paper:
 
 ```
 @ARTICLE{2014SoPh..289.3549B,
@@ -57,5 +59,22 @@ archivePrefix = "arXiv",
       doi = {10.1007/s11207-014-0529-3},
    adsurl = {http://adsabs.harvard.edu/abs/2014SoPh..289.3549B},
   adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+```
+
+And here is the bibtex entry for the software repository:
+
+```
+@misc{monica_g_bobra_2021_5131292,
+  author       = {Monica G. Bobra and
+                  Xudong Sun (孙旭东) and
+                  Michael J. Turmon},
+  title        = {mbobra/SHARPs: SHARPs 0.1.0 (2021-07-23)},
+  month        = jul,
+  year         = 2021,
+  publisher    = {Zenodo},
+  version      = {v0.1.0},
+  doi          = {10.5281/zenodo.5131292},
+  url          = {https://doi.org/10.5281/zenodo.5131292}
 }
 ```
